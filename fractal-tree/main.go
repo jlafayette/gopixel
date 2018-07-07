@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"time"
 
 	"github.com/faiface/pixel"
@@ -19,10 +20,13 @@ type BranchInfo struct {
 	angle       float64
 	branchAngle float64
 	offsetAngle float64
+	randAngle   float64
+	randLen     float64
+	r           *rand.Rand
 }
 
 // NewBranchInfo ...
-func NewBranchInfo(posV, lenV pixel.Vec, angle, branchAngle, offsetAngle float64) BranchInfo {
+func NewBranchInfo(posV, lenV pixel.Vec, angle, branchAngle, offsetAngle, randAngle, randLen float64, randSeed int64) BranchInfo {
 	return BranchInfo{
 		posV:        posV,
 		lenV:        lenV,
@@ -30,10 +34,18 @@ func NewBranchInfo(posV, lenV pixel.Vec, angle, branchAngle, offsetAngle float64
 		angle:       angle,
 		branchAngle: branchAngle,
 		offsetAngle: offsetAngle,
+		randAngle:   randAngle,
+		randLen:     randLen,
+		r:           rand.New(rand.NewSource(randSeed)),
 	}
 }
 
 func branch(imd *imdraw.IMDraw, b BranchInfo) {
+
+	if b.randLen > 0 {
+		scaleMult := 1 + ((b.r.Float64() - 0.5) * b.randLen)
+		b.lenV = b.lenV.Scaled(scaleMult)
+	}
 
 	thickness := b.lenV.Len() / 16
 	if thickness > 5 {
@@ -44,7 +56,9 @@ func branch(imd *imdraw.IMDraw, b BranchInfo) {
 
 	imd.Push(b.posV)
 	b.m = b.m.Moved(b.lenV)
-	b.m = b.m.Rotated(b.posV, b.angle)
+	if b.angle != 0 {
+		b.m = b.m.Rotated(b.posV, b.angle+((b.r.Float64()-0.5)*b.randAngle))
+	}
 	b.posV = b.m.Project(pixel.ZV)
 	imd.Push(b.posV)
 	if thickness > 1 {
@@ -84,7 +98,11 @@ func run() {
 		length      = pixel.V(0, 250)
 		branchAngle = math.Pi / 4
 		offsetAngle = 0.0
+		randAngle   = 0.0
+		randLen     = 0.0
 	)
+	var randSeed int64
+	randSeed = 99
 
 	// main loop
 	for !win.Closed() {
@@ -110,6 +128,30 @@ func run() {
 		}
 		// f smaller random
 		// r larger random
+		// n get new random seed
+		if win.Pressed(pixelgl.KeyR) {
+			if randAngle < math.Pi {
+				randAngle = randAngle + 0.05
+			}
+		} else if win.Pressed(pixelgl.KeyF) {
+			if randAngle > 0 {
+				randAngle = randAngle - 0.05
+			}
+		}
+		if win.JustPressed(pixelgl.KeyN) {
+			randSeed = time.Now().UnixNano()
+		}
+		// z small length random
+		// x larger length random (0 -> 1)
+		if win.Pressed(pixelgl.KeyX) {
+			if randLen < 1 {
+				randLen = randLen + 0.02
+			}
+		} else if win.Pressed(pixelgl.KeyZ) {
+			if randLen > 0 {
+				randLen = randLen - 0.02
+			}
+		}
 
 		// q offsetLeft
 		// e offsetRight
@@ -124,11 +166,13 @@ func run() {
 		}
 
 		// DRAW
+
+		// test for changes before redrawing
 		win.Clear(colornames.Grey)
 		imd.Clear()
 
 		root := pixel.V(win.Bounds().Center().X, 0)
-		b := NewBranchInfo(root, length, 0, branchAngle, offsetAngle)
+		b := NewBranchInfo(root, length, 0, branchAngle, offsetAngle, randAngle, randLen, randSeed)
 		branch(imd, b)
 
 		imd.Draw(win)
