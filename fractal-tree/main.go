@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"time"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -62,6 +64,8 @@ func run() {
 	mat := pixel.IM.Moved(root)
 	branch(imd, root, length, mat, 0, 12)
 
+	frames := 0
+	second := time.Tick(time.Second)
 	// main loop
 	for !win.Closed() {
 		// update
@@ -70,6 +74,15 @@ func run() {
 		win.Clear(colornames.Grey)
 		imd.Draw(win)
 		win.Update()
+
+		// framerate
+		frames++
+		select {
+		case <-second:
+			win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
+			frames = 0
+		default:
+		}
 	}
 }
 
