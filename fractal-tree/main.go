@@ -11,39 +11,47 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, offsetAngle, thickness float64) {
+// BranchInfo ...
+type BranchInfo struct {
+	posV        pixel.Vec
+	lenV        pixel.Vec
+	m           pixel.Matrix
+	angle       float64
+	offsetAngle float64
+}
 
-	imd.Push(posV)
-	m = m.Moved(lengthV)
-	m = m.Rotated(posV, angle)
-	posV = m.Project(pixel.ZV)
-	imd.Push(posV)
-	imd.Line(thickness)
-	if lengthV.Len() > 4 {
-		lengthV = lengthV.Scaled(.67)
-		if thickness > 1 {
-			thickness--
-		}
+// NewBranchInfo ...
+func NewBranchInfo(posV, lenV pixel.Vec, angle, offsetAngle float64) BranchInfo {
+	return BranchInfo{
+		posV:        posV,
+		lenV:        lenV,
+		m:           pixel.IM.Moved(posV),
+		angle:       angle,
+		offsetAngle: offsetAngle,
+	}
+}
+
+func branch(imd *imdraw.IMDraw, b BranchInfo) {
+
+	imd.Push(b.posV)
+	b.m = b.m.Moved(b.lenV)
+	b.m = b.m.Rotated(b.posV, b.angle)
+	b.posV = b.m.Project(pixel.ZV)
+	imd.Push(b.posV)
+	thickness := b.lenV.Len() / 16
+	if thickness > 1 {
+		imd.Line(thickness)
+	} else {
+		imd.Line(1)
+	}
+	if b.lenV.Len() > 4 {
+		b.lenV = b.lenV.Scaled(.618)
 		// left branch
-		branch(
-			imd,
-			posV,
-			lengthV,
-			m,
-			angle+offsetAngle,
-			offsetAngle,
-			thickness,
-		)
+		b.angle = b.angle + b.offsetAngle
+		branch(imd, b)
 		// right branch
-		branch(
-			imd,
-			posV,
-			lengthV,
-			m,
-			angle-offsetAngle,
-			offsetAngle,
-			thickness,
-		)
+		b.angle = b.angle - b.offsetAngle*2
+		branch(imd, b)
 	}
 }
 
@@ -60,7 +68,7 @@ func run() {
 
 	imd := imdraw.New(nil)
 	imd.Color = colornames.Whitesmoke
-	imd.EndShape = imdraw.SharpEndShape
+	imd.EndShape = imdraw.NoEndShape
 
 	var (
 		frames = 0
@@ -93,8 +101,8 @@ func run() {
 		imd.Clear()
 
 		root := pixel.V(win.Bounds().Center().X, 0)
-		mat := pixel.IM.Moved(root)
-		branch(imd, root, length, mat, 0, angle, 12)
+		b := NewBranchInfo(root, length, 0, angle)
+		branch(imd, b)
 
 		imd.Draw(win)
 		win.Update()
