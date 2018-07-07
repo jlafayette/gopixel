@@ -11,7 +11,7 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, thickness float64) {
+func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, offsetAngle, thickness float64) {
 
 	imd.Push(posV)
 	m = m.Moved(lengthV)
@@ -19,7 +19,7 @@ func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, 
 	posV = m.Project(pixel.ZV)
 	imd.Push(posV)
 	imd.Line(thickness)
-	if lengthV.Len() > 2 {
+	if lengthV.Len() > 4 {
 		lengthV = lengthV.Scaled(.67)
 		if thickness > 1 {
 			thickness--
@@ -30,7 +30,8 @@ func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, 
 			posV,
 			lengthV,
 			m,
-			angle+math.Pi/4,
+			angle+offsetAngle,
+			offsetAngle,
 			thickness,
 		)
 		// right branch
@@ -39,7 +40,8 @@ func branch(imd *imdraw.IMDraw, posV, lengthV pixel.Vec, m pixel.Matrix, angle, 
 			posV,
 			lengthV,
 			m,
-			angle-math.Pi/4,
+			angle-offsetAngle,
+			offsetAngle,
 			thickness,
 		)
 	}
@@ -59,19 +61,41 @@ func run() {
 	imd := imdraw.New(nil)
 	imd.Color = colornames.Whitesmoke
 	imd.EndShape = imdraw.SharpEndShape
-	length := pixel.V(0, 250)
-	root := pixel.V(win.Bounds().Center().X, 0)
-	mat := pixel.IM.Moved(root)
-	branch(imd, root, length, mat, 0, 12)
 
-	frames := 0
-	second := time.Tick(time.Second)
+	var (
+		frames = 0
+		second = time.Tick(time.Second)
+		length = pixel.V(0, 250)
+		angle  = math.Pi / 4
+	)
+
 	// main loop
 	for !win.Closed() {
-		// update
+		// UPDATE
 
-		// draw
+		// w longer
+		// s shorter
+		if win.Pressed(pixelgl.KeyW) {
+			length = length.Add(pixel.V(0, 1))
+		} else if win.Pressed(pixelgl.KeyS) {
+			length = length.Add(pixel.V(0, -1))
+		}
+		// a smaller angle
+		// d larger angle
+		if win.Pressed(pixelgl.KeyA) {
+			angle = angle + 0.01
+		} else if win.Pressed(pixelgl.KeyD) {
+			angle = angle - 0.01
+		}
+
+		// DRAW
 		win.Clear(colornames.Grey)
+		imd.Clear()
+
+		root := pixel.V(win.Bounds().Center().X, 0)
+		mat := pixel.IM.Moved(root)
+		branch(imd, root, length, mat, 0, angle, 12)
+
 		imd.Draw(win)
 		win.Update()
 
