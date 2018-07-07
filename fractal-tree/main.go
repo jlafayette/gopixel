@@ -17,16 +17,18 @@ type BranchInfo struct {
 	lenV        pixel.Vec
 	m           pixel.Matrix
 	angle       float64
+	branchAngle float64
 	offsetAngle float64
 }
 
 // NewBranchInfo ...
-func NewBranchInfo(posV, lenV pixel.Vec, angle, offsetAngle float64) BranchInfo {
+func NewBranchInfo(posV, lenV pixel.Vec, angle, branchAngle, offsetAngle float64) BranchInfo {
 	return BranchInfo{
 		posV:        posV,
 		lenV:        lenV,
 		m:           pixel.IM.Moved(posV),
 		angle:       angle,
+		branchAngle: branchAngle,
 		offsetAngle: offsetAngle,
 	}
 }
@@ -53,10 +55,10 @@ func branch(imd *imdraw.IMDraw, b BranchInfo) {
 	if b.lenV.Len() > 4 {
 		b.lenV = b.lenV.Scaled(.618)
 		// left branch
-		b.angle = b.angle + b.offsetAngle
+		b.angle = b.angle + b.branchAngle + b.offsetAngle
 		branch(imd, b)
 		// right branch
-		b.angle = b.angle - b.offsetAngle*2
+		b.angle = b.angle - b.branchAngle*2
 		branch(imd, b)
 	}
 }
@@ -77,10 +79,11 @@ func run() {
 	imd.EndShape = imdraw.NoEndShape
 
 	var (
-		frames = 0
-		second = time.Tick(time.Second)
-		length = pixel.V(0, 250)
-		angle  = math.Pi / 4
+		frames      = 0
+		second      = time.Tick(time.Second)
+		length      = pixel.V(0, 250)
+		branchAngle = math.Pi / 4
+		offsetAngle = 0.0
 	)
 
 	// main loop
@@ -97,12 +100,26 @@ func run() {
 		// a smaller angle
 		// d larger angle
 		if win.Pressed(pixelgl.KeyA) {
-			if angle < math.Pi {
-				angle = angle + 0.01
+			if branchAngle < math.Pi {
+				branchAngle = branchAngle + 0.01
 			}
 		} else if win.Pressed(pixelgl.KeyD) {
-			if angle > 0 {
-				angle = angle - 0.01
+			if branchAngle > 0 {
+				branchAngle = branchAngle - 0.01
+			}
+		}
+		// f smaller random
+		// r larger random
+
+		// q offsetLeft
+		// e offsetRight
+		if win.Pressed(pixelgl.KeyQ) {
+			if offsetAngle < math.Pi/2 {
+				offsetAngle = offsetAngle + 0.01
+			}
+		} else if win.Pressed(pixelgl.KeyE) {
+			if offsetAngle > -math.Pi/2 {
+				offsetAngle = offsetAngle - 0.01
 			}
 		}
 
@@ -111,7 +128,7 @@ func run() {
 		imd.Clear()
 
 		root := pixel.V(win.Bounds().Center().X, 0)
-		b := NewBranchInfo(root, length, 0, angle)
+		b := NewBranchInfo(root, length, 0, branchAngle, offsetAngle)
 		branch(imd, b)
 
 		imd.Draw(win)
