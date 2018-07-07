@@ -33,12 +33,18 @@ func NewBranchInfo(posV, lenV pixel.Vec, angle, offsetAngle float64) BranchInfo 
 
 func branch(imd *imdraw.IMDraw, b BranchInfo) {
 
+	thickness := b.lenV.Len() / 16
+	if thickness > 5 {
+		imd.EndShape = imdraw.SharpEndShape
+	} else {
+		imd.EndShape = imdraw.NoEndShape
+	}
+
 	imd.Push(b.posV)
 	b.m = b.m.Moved(b.lenV)
 	b.m = b.m.Rotated(b.posV, b.angle)
 	b.posV = b.m.Project(pixel.ZV)
 	imd.Push(b.posV)
-	thickness := b.lenV.Len() / 16
 	if thickness > 1 {
 		imd.Line(thickness)
 	} else {
@@ -91,9 +97,13 @@ func run() {
 		// a smaller angle
 		// d larger angle
 		if win.Pressed(pixelgl.KeyA) {
-			angle = angle + 0.01
+			if angle < math.Pi {
+				angle = angle + 0.01
+			}
 		} else if win.Pressed(pixelgl.KeyD) {
-			angle = angle - 0.01
+			if angle > 0 {
+				angle = angle - 0.01
+			}
 		}
 
 		// DRAW
