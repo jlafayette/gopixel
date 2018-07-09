@@ -15,77 +15,78 @@ import (
 
 // Cells ...
 type Cells struct {
-	bounds     pixel.Rect      // bounds to fill with dots
-	boundsMinX int             // lower bound X as int
-	boundsMaxX int             // upper bound X as int
-	boundsMinY int             // lower bound Y as int
-	boundsMaxY int             // upper bound Y as int
-	dots       []pixel.Vec     // vector for each dot, these are cell centers
-	colors     []color.NRGBA   // color for each dot / cell
-	imds       []imdraw.IMDraw // polygon drawer for each cell
-	dx         []int           // dot x coordinates as int
-	dy         []int           // dot y coordinates as int
+	bounds     pixel.Rect // bounds to fill with cells
+	boundsMinX int        // lower bound X as int
+	boundsMaxX int        // upper bound X as int
+	boundsMinY int        // lower bound Y as int
+	boundsMaxY int        // upper bound Y as int
+	cells      []Cell
+}
+
+// Cell ...
+type Cell struct {
+	center pixel.Vec
+	imd    imdraw.IMDraw
+	cx     int
+	cy     int
+}
+
+// NewCell ...
+func NewCell(x, y int) Cell {
+	imd := *imdraw.New(nil)
+	imd.Color = randomColor()
+	imd.EndShape = imdraw.NoEndShape
+	return Cell{
+		center: pixel.V(float64(x), float64(y)),
+		imd:    imd,
+		cx:     x,
+		cy:     y,
+	}
 }
 
 // NewCells returns a new Cells object with given number of cells
-// For easier pixel calulations, each dot is always an integer
+// For easier pixel calulations, each cell center is always an integer
 func NewCells(n int, bounds pixel.Rect) Cells {
-	d := Cells{
+	newcells := Cells{
 		bounds:     bounds,
 		boundsMinX: int(bounds.Min.X),
 		boundsMaxX: int(bounds.Max.X),
 		boundsMinY: int(bounds.Min.Y),
 		boundsMaxY: int(bounds.Max.Y),
-		dots:       make([]pixel.Vec, n),
-		dx:         make([]int, n),
-		dy:         make([]int, n),
+		cells:      make([]Cell, n),
 	}
-	for i := range d.dots {
-		x := rand.Intn(d.boundsMaxX-d.boundsMinX) + d.boundsMinX
-		y := rand.Intn(d.boundsMaxY-d.boundsMinY) + d.boundsMinY
-		d.dots[i] = pixel.V(float64(x), float64(y))
-		d.computeColors()
-		d.dx[i] = x
-		d.dy[i] = y
+	for i := 0; i < n; i++ {
+		x := rand.Intn(newcells.boundsMaxX-newcells.boundsMinX) + newcells.boundsMinX
+		y := rand.Intn(newcells.boundsMaxY-newcells.boundsMinY) + newcells.boundsMinY
+		newcells.cells[i] = NewCell(x, y)
 	}
-	return d
+	return newcells
 }
 
-// computeColors generates a random color for each cell / dot
-func (d *Cells) computeColors() {
-	d.colors = make([]color.NRGBA, len(d.dots))
-	for i := range d.dots {
-		d.colors[i] = color.NRGBA{
-			uint8(rand.Intn(256)),
-			uint8(rand.Intn(256)),
-			uint8(rand.Intn(256)),
-			255,
-		}
+// randomColor generates a random color
+func randomColor() color.NRGBA {
+	return color.NRGBA{
+		uint8(rand.Intn(256)),
+		uint8(rand.Intn(256)),
+		uint8(rand.Intn(256)),
+		255,
 	}
 }
 
 // draw the dots
 func (d *Cells) drawdots(imd *imdraw.IMDraw) {
-	for i := range d.dots {
-		imd.Push(d.dots[i])
+	for _, cell := range d.cells {
+		imd.Push(cell.center)
 		imd.Circle(5, 0)
 	}
 }
 
 func (d *Cells) generateVoronoi() {
-	// generate a polygon drawer for each cell to track them
-	d.imds = make([]imdraw.IMDraw, len(d.dots))
-	for i := range d.imds {
-		d.imds[i] = *imdraw.New(nil)
-		d.imds[i].Color = d.colors[i]
-		d.imds[i].EndShape = imdraw.NoEndShape
-	}
-
 	// evaluate each pixel
 	var v pixel.Vec
 	var minDistance float64
 	var currentDistance float64
-	var closestDotIndex int
+	var closestCellIndex int
 	leftIndex := -1
 	bttmIndexes := make([]int, d.boundsMaxX+1)
 	// start at lower left, process the whole row, then go up one and and continue
@@ -96,7 +97,7 @@ func (d *Cells) generateVoronoi() {
 			// pixel being evaluated. Pixels being evaluated are the current pixel, the
 			// pixel to the left, the pixel down, the pixel down and to the left.
 			idSet := make(map[int]bool)
-			closestDotIndex = -1
+			closestCellIndex = -1
 
 			if x == d.boundsMaxX {
 				// far right case
@@ -111,17 +112,17 @@ func (d *Cells) generateVoronoi() {
 			}
 			// find closest dot
 			minDistance = d.bounds.Size().Len()
-			for i, dotV := range d.dots {
-				currentDistance = v.Sub(dotV).Len()
+			for i, cell := range d.cells {
+				currentDistance = v.Sub(cell.center).Len()
 				if currentDistance < minDistance {
-					closestDotIndex = i
+					closestCellIndex = i
 					minDistance = currentDistance
 				}
 			}
 
 			// Evaluate the bottom left corner of the current pixel, there are 4 pixels,
 			// if 3 of them are different, it's a meeting point
-			idSet[closestDotIndex] = true
+			idSet[closestCellIndex] = true
 			idSet[leftIndex] = true
 			idSet[bttmIndexes[x]] = true
 			if x > 0 {
@@ -131,34 +132,21 @@ func (d *Cells) generateVoronoi() {
 				for k := range idSet {
 					// debug circle
 					if k >= 0 {
-						d.imds[k].Push(v)
-						d.imds[k].Circle(float64(k), 1)
+						d.cells[k].imd.Push(v)
+						d.cells[k].imd.Circle(float64(k), 1)
 					}
 				}
-
-				// TODO: handle top case, handle far right case
-
-				// draw all the lines... diagonals are broken
-				// if numCells >= 2 {
-				// 	// add to drawer for each cell
-				// 	for _, index := range cellsToDraw {
-
-				// 		// debug circle
-				// 		d.imds[index].Push(v)
-				// 		d.imds[index].Circle(1, 1)
-
-				// 	}
 			}
 
-			leftIndex = closestDotIndex
-			bttmIndexes[x] = closestDotIndex
+			leftIndex = closestCellIndex
+			bttmIndexes[x] = closestCellIndex
 		}
 	}
 
-	for i, imd := range d.imds {
+	for _, cell := range d.cells {
 		// imd.Circle(5, 1)
-		imd.Push(d.dots[i])
-		imd.Circle(5, 0)
+		cell.imd.Push(cell.center)
+		cell.imd.Circle(5, 0)
 	}
 }
 
@@ -170,8 +158,8 @@ func distance(v1, v2 pixel.Vec) float64 {
 }
 
 func (d *Cells) drawVoronoi(tgt pixel.Target) {
-	for _, imd := range d.imds {
-		imd.Draw(tgt)
+	for _, cell := range d.cells {
+		cell.imd.Draw(tgt)
 	}
 }
 
@@ -183,7 +171,7 @@ func run() {
 	cfg := pixelgl.WindowConfig{
 		Title: "Tile-Fill",
 		// Bounds: pixel.R(0, 0, 1024, 768),
-		Bounds: pixel.R(0, 0, 200, 200),
+		Bounds: pixel.R(0, 0, 400, 200),
 		VSync:  true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
