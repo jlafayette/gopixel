@@ -1,0 +1,59 @@
+package main
+
+import (
+	"image"
+	"image/color"
+	"image/draw"
+	"math/rand"
+
+	"github.com/faiface/pixel"
+)
+
+func generateVoronoi(sx, sy []int) pixel.Picture {
+	// generate a random color for each site
+	sc := make([]color.NRGBA, nSites)
+	for i := range sx {
+		sc[i] = color.NRGBA{
+			uint8(rand.Intn(156) + 100),
+			uint8(rand.Intn(156) + 100),
+			uint8(rand.Intn(156) + 100), 255}
+	}
+
+	// generate diagram by coloring each pixel with color of nearest site
+	img := image.NewNRGBA(image.Rect(0, 0, imageWidth, imageHeight))
+	for y := 0; y < imageHeight; y++ {
+		for x := 0; x < imageWidth; x++ {
+			dMin := dot(imageWidth, imageHeight)
+			var sMin int
+			for s := 0; s < nSites; s++ {
+				if d := dot(sx[s]-x, sy[s]-y); d < dMin {
+					sMin = s
+					dMin = d
+				}
+			}
+			img.SetNRGBA(x, y, sc[sMin])
+		}
+	}
+	// mark each cell center with a black box
+	black := image.NewUniform(color.Black)
+	for s := 0; s < nSites; s++ {
+		draw.Draw(img, image.Rect(sx[s]-2, sy[s]-2, sx[s]+2, sy[s]+2),
+			black, image.ZP, draw.Src)
+	}
+	pic := pixel.PictureDataFromImage(img)
+	return pic
+}
+
+func dot(x, y int) int {
+	return x*x + y*y
+}
+
+func sitesFromCells(c Cells) (sx, sy []int) {
+	sx = make([]int, len(c.cells))
+	sy = make([]int, len(c.cells))
+	for i, cell := range c.cells {
+		sx[i] = cell.cx
+		sy[i] = cell.cy
+	}
+	return
+}
