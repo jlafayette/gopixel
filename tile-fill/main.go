@@ -23,27 +23,6 @@ type Cells struct {
 	cells      []Cell
 }
 
-// Cell ...
-type Cell struct {
-	center pixel.Vec
-	imd    imdraw.IMDraw
-	cx     int
-	cy     int
-}
-
-// NewCell ...
-func NewCell(x, y int) Cell {
-	imd := *imdraw.New(nil)
-	imd.Color = randomColor()
-	imd.EndShape = imdraw.NoEndShape
-	return Cell{
-		center: pixel.V(float64(x), float64(y)),
-		imd:    imd,
-		cx:     x,
-		cy:     y,
-	}
-}
-
 // NewCells returns a new Cells object with given number of cells
 // For easier pixel calulations, each cell center is always an integer
 func NewCells(n int, bounds pixel.Rect) Cells {
@@ -58,7 +37,7 @@ func NewCells(n int, bounds pixel.Rect) Cells {
 	for i := 0; i < n; i++ {
 		x := rand.Intn(newcells.boundsMaxX-newcells.boundsMinX) + newcells.boundsMinX
 		y := rand.Intn(newcells.boundsMaxY-newcells.boundsMinY) + newcells.boundsMinY
-		newcells.cells[i] = NewCell(x, y)
+		newcells.cells[i] = NewCell(x, y, i)
 	}
 	return newcells
 }
@@ -93,19 +72,12 @@ func (d *Cells) generateVoronoi() {
 	for y := 0; y < d.boundsMaxY+1; y++ {
 		for x := 0; x < d.boundsMaxX+1; x++ {
 
-			// idSet stores a map of the different cell indexes that are around the current
-			// pixel being evaluated. Pixels being evaluated are the current pixel, the
-			// pixel to the left, the pixel down, the pixel down and to the left.
-			idSet := make(map[int]bool)
 			closestCellIndex = -1
-
 			if x == d.boundsMaxX {
 				// far right case
-				idSet[-1] = true
 				v = pixel.V(float64(x-1), float64(y))
 			} else if y == d.boundsMaxY {
 				// top case
-				idSet[-1] = true
 				v = pixel.V(float64(x), float64(y-1))
 			} else {
 				v = pixel.V(float64(x), float64(y))
@@ -120,20 +92,35 @@ func (d *Cells) generateVoronoi() {
 				}
 			}
 
-			// Evaluate the bottom left corner of the current pixel, there are 4 pixels,
-			// if 3 of them are different, it's a meeting point
+			// idSet stores a map of the different cell indexes that are around the current
+			// pixel being evaluated. Pixels being evaluated are the current pixel, the
+			// pixel to the left, the pixel down, the pixel down and to the left. If 3 or
+			// more of them are different, it's a vertex.
+			idSet := make(map[int]bool)
+			if x == 0 {
+				leftIndex = -1
+			}
+			if y == 0 {
+				bttmIndexes[x] = -1
+			}
+			// if x == 0 || x == d.boundsMaxX || y == 0 || y == d.boundsMaxY {
+			// 	idSet[-1] = true
+			// }
 			idSet[closestCellIndex] = true
 			idSet[leftIndex] = true
-			idSet[bttmIndexes[x]] = true
-			if x > 0 {
-				idSet[bttmIndexes[x-1]] = true
+			if y > 0 {
+				idSet[bttmIndexes[x]] = true
+				if x > 0 {
+					idSet[bttmIndexes[x-1]] = true
+				}
 			}
 			if len(idSet) > 2 {
 				for k := range idSet {
 					// debug circle
 					if k >= 0 {
-						d.cells[k].imd.Push(v)
-						d.cells[k].imd.Circle(float64(k), 1)
+						d.cells[k].addPoint(v)
+						// d.cells[k].imd.Push(v)
+						// d.cells[k].imd.Circle(float64(k), 1)
 					}
 				}
 			}
@@ -141,12 +128,6 @@ func (d *Cells) generateVoronoi() {
 			leftIndex = closestCellIndex
 			bttmIndexes[x] = closestCellIndex
 		}
-	}
-
-	for _, cell := range d.cells {
-		// imd.Circle(5, 1)
-		cell.imd.Push(cell.center)
-		cell.imd.Circle(5, 0)
 	}
 }
 
@@ -157,21 +138,17 @@ func distance(v1, v2 pixel.Vec) float64 {
 	// return v1.Sub(v2).Len()
 }
 
-func (d *Cells) drawVoronoi(tgt pixel.Target) {
+func (d *Cells) draw(tgt pixel.Target) {
 	for _, cell := range d.cells {
-		cell.imd.Draw(tgt)
+		cell.draw(tgt)
 	}
-}
-
-func dot(x, y int) int {
-	return (x * x) + (y * y)
 }
 
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title: "Tile-Fill",
 		// Bounds: pixel.R(0, 0, 1024, 768),
-		Bounds: pixel.R(0, 0, 400, 200),
+		Bounds: pixel.R(0, 0, 600, 400),
 		VSync:  true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
@@ -179,19 +156,19 @@ func run() {
 		panic(err)
 	}
 
-	imd := imdraw.New(nil)
-	imd.Color = colornames.Whitesmoke
-	imd.EndShape = imdraw.NoEndShape
+	// imd := imdraw.New(nil)
+	// imd.Color = colornames.Whitesmoke
+	// imd.EndShape = imdraw.NoEndShape
 
 	rand.Seed(time.Now().Unix())
-	d := NewCells(10, win.Bounds())
+	d := NewCells(25, win.Bounds())
 
 	// Move to main loop later ... testing voronoi
 	win.Clear(colornames.Gray)
 	// imd.Clear()
 	// d.drawdots(imd)
 	d.generateVoronoi()
-	d.drawVoronoi(win)
+	d.draw(win)
 	// imd.Draw(win)
 
 	var (
