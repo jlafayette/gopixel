@@ -1,5 +1,10 @@
 package main
 
+// Copied from https://rosettacode.org/wiki/Voronoi_diagram#Go with modifications
+// so it works with pixel instead of writing to an image.
+// Copyright (c) 2018 rosettacode.org
+// License (GNU Free Documentation License 1.2) http://www.gnu.org/licenses/fdl-1.2.html
+
 import (
 	"image"
 	"image/color"
