@@ -65,8 +65,8 @@ func (p pt) angle() float64 {
 func (c *Cell) createOutline() {
 	c.orderPoints()
 	for _, pt := range c.points {
-		nudgeV := c.center.Sub(pt.v).Unit()
-		c.imd.Push(pt.v.Add(nudgeV).Add(nudgeV))
+		nudgeV := c.center.Sub(pt.v).Unit().Scaled(2)
+		c.imd.Push(pt.v.Add(nudgeV))
 	}
 	c.imd.Polygon(2)
 }
@@ -81,7 +81,7 @@ func (c *Cell) createSpokes() {
 func (c *Cell) draw(tgt pixel.Target) {
 	fmt.Printf("calling draw for pt: %v\n", c.center)
 	for _, pt := range c.points {
-		fmt.Printf("    pt: %v\n", pt)
+		fmt.Printf("    pt: %v\n", pt.v)
 	}
 	c.createSpokes()
 	c.createOutline()

@@ -146,10 +146,10 @@ func (d *Cells) draw(tgt pixel.Target) {
 
 func run() {
 	cfg := pixelgl.WindowConfig{
-		Title: "Tile-Fill",
-		// Bounds: pixel.R(0, 0, 1024, 768),
-		Bounds: pixel.R(0, 0, 600, 400),
-		VSync:  true,
+		Title:  "Tile-Fill",
+		Bounds: pixel.R(0, 0, 1024, 768),
+		// Bounds: pixel.R(0, 0, 600, 400),
+		VSync: true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -160,7 +160,8 @@ func run() {
 	// imd.Color = colornames.Whitesmoke
 	// imd.EndShape = imdraw.NoEndShape
 
-	rand.Seed(time.Now().Unix())
+	// rand.Seed(time.Now().Unix())
+	rand.Seed(99)
 	d := NewCells(25, win.Bounds())
 
 	// Move to main loop later ... testing voronoi
