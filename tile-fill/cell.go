@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/faiface/pixel"
@@ -68,7 +67,7 @@ func (c *Cell) createOutline() {
 		nudgeV := c.center.Sub(pt.v).Unit().Scaled(2)
 		c.imd.Push(pt.v.Add(nudgeV))
 	}
-	c.imd.Polygon(2)
+	c.imd.Polygon(1)
 }
 
 func (c *Cell) createSpokes() {
@@ -79,13 +78,13 @@ func (c *Cell) createSpokes() {
 }
 
 func (c *Cell) draw(tgt pixel.Target) {
-	fmt.Printf("calling draw for pt: %v\n", c.center)
-	for _, pt := range c.points {
-		fmt.Printf("    pt: %v\n", pt.v)
-	}
+	// fmt.Printf("calling draw for pt: %v\n", c.center)
+	// for _, pt := range c.points {
+	// 	fmt.Printf("    pt: %v\n", pt.v)
+	// }
 	c.createSpokes()
 	c.createOutline()
 	c.imd.Push(c.center)
-	c.imd.Circle(3, 0)
+	c.imd.Circle(7, 2)
 	c.imd.Draw(tgt)
 }
