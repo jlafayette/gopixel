@@ -57,45 +57,40 @@ func randomColor() color.NRGBA {
 	}
 }
 
-func (d *Cells) generateVoronoi() {
-	// evaluate each pixel
-	var v pixel.Vec
+func findClosestSeed(c *Cells, x, y int) (int8, pixel.Vec) {
+	v := pixel.V(float64(x), float64(y))
+	var closestCellIndex int8
 	var minDistance float64
 	var currentDistance float64
-	var closestCellIndex int
+	minDistance = c.bounds.Size().Len()
+	for i, cell := range c.cells {
+		currentDistance = v.Sub(cell.center).Len()
+		if currentDistance <= minDistance {
+			closestCellIndex = int8(i)
+			minDistance = currentDistance
+		}
+	}
+	return closestCellIndex, v
+}
 
+func (d *Cells) generateVoronoi() {
 	width := d.boundsMaxX
 	height := d.boundsMaxY
-	master := make([]int, width*height)
+	master := make([]int8, width*height)
 
 	// top right corner
 	x := width - 1
 	y := height - 1
-	v = pixel.V(float64(x), float64(y))
-	minDistance = d.bounds.Size().Len()
-	for i, cell := range d.cells {
-		currentDistance = v.Sub(cell.center).Len()
-		if currentDistance <= minDistance {
-			closestCellIndex = i
-			minDistance = currentDistance
-		}
-	}
-	master[x+y*width] = closestCellIndex
+	closestCellIndex, v := findClosestSeed(d, x, y)
 	d.cells[closestCellIndex].addPoint(v)
+	master[x+y*width] = closestCellIndex
 
 	// horizontal edges and left corners
+	var leftIndex int8
 	for _, y := range []int{0, height - 1} {
-		leftIndex := -1
+		leftIndex = -1
 		for x := 0; x < width-1; x++ {
-			v = pixel.V(float64(x), float64(y))
-			minDistance = d.bounds.Size().Len()
-			for i, cell := range d.cells {
-				currentDistance = v.Sub(cell.center).Len()
-				if currentDistance <= minDistance {
-					closestCellIndex = i
-					minDistance = currentDistance
-				}
-			}
+			closestCellIndex, v := findClosestSeed(d, x, y)
 			master[x+y*width] = closestCellIndex
 			if closestCellIndex != leftIndex {
 				d.cells[closestCellIndex].addPoint(v)
@@ -108,17 +103,10 @@ func (d *Cells) generateVoronoi() {
 	}
 	// vertical edges
 	for _, x := range []int{0, width - 1} {
-		btIndex := -1
+		var btIndex int8
+		btIndex = -1
 		for y := 0; y < height-1; y++ {
-			v = pixel.V(float64(x), float64(y))
-			minDistance = d.bounds.Size().Len()
-			for i, cell := range d.cells {
-				currentDistance = v.Sub(cell.center).Len()
-				if currentDistance <= minDistance {
-					closestCellIndex = i
-					minDistance = currentDistance
-				}
-			}
+			closestCellIndex, v := findClosestSeed(d, x, y)
 			master[x+y*width] = closestCellIndex
 			if closestCellIndex != btIndex {
 				d.cells[closestCellIndex].addPoint(v)
@@ -132,23 +120,13 @@ func (d *Cells) generateVoronoi() {
 	// middle points
 	for y := 1; y < height; y++ {
 		for x := 1; x < width; x++ {
-			// find closest cell center
-			closestCellIndex = -1
-			v = pixel.V(float64(x), float64(y))
-			minDistance = d.bounds.Size().Len()
-			for i, cell := range d.cells {
-				currentDistance = v.Sub(cell.center).Len()
-				if currentDistance <= minDistance {
-					closestCellIndex = i
-					minDistance = currentDistance
-				}
-			}
+			closestCellIndex, v := findClosestSeed(d, x, y)
 			master[x+y*width] = closestCellIndex
 			// idSet stores a map of the different cell indexes that are around the current
 			// pixel being evaluated. Pixels being evaluated are the current pixel, the
 			// pixel to the left, the pixel down, the pixel down and to the left. If 3 or
 			// more of them are different, it's a vertex.
-			idSet := make(map[int]bool)
+			idSet := make(map[int8]bool)
 			idSet[closestCellIndex] = true
 			idSet[master[(x-1)+y*width]] = true
 			idSet[master[x+(y-1)*width]] = true

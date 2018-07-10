@@ -1,14 +1,16 @@
-ROUND 1
-
 c := NewCells(25, pixel.R(0, 0, 400, 400))
 c.generateVoronoi()
-
-$ go test -run=XXX -bench=. -benchtime=20s
-BenchmarkCells_generateVoronoi-4             200         143454313 ns/op
-
 $ go test -run=XXX -bench=. -benchmem
+$ go test -run=XXX -bench=. -benchtime=20s -benchmem
+
+ROUND 1
 BenchmarkCells_generateVoronoi-4              10         144054910 ns/op           36440 B/op        363 allocs/op
+BenchmarkCells_generateVoronoi-4             200         143454313 ns/op
 
 ROUND 2
 BenchmarkCells_generateVoronoi-4              10         143153320 ns/op         1315352 B/op            361 allocs/op
 BenchmarkCells_generateVoronoi-4             200         143035020 ns/op         1315747 B/op            362 allocs/op
+
+ROUND 3  (int8 instead of int)
+BenchmarkCells_generateVoronoi-4              10         153850950 ns/op          193732 B/op            366 allocs/op
+BenchmarkCells_generateVoronoi-4             200         153381219 ns/op          193517 B/op            363 allocs/op
