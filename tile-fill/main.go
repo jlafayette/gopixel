@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	imageWidth  = 400
-	imageHeight = 300
-	nSites      = 10
+	imageWidth  = 800
+	imageHeight = 650
+	nSites      = 3
 )
 
 // Cells ...
@@ -223,8 +223,8 @@ func run() {
 	// imd.Color = colornames.Whitesmoke
 	// imd.EndShape = imdraw.NoEndShape
 
-	// rand.Seed(time.Now().Unix())
-	rand.Seed(99)
+	rand.Seed(time.Now().Unix())
+	// rand.Seed(99)
 	c := NewCells(nSites, win.Bounds())
 
 	pic := generateVoronoi(sitesFromCells(c))
