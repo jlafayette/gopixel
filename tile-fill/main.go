@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"math"
 	"math/rand"
 	"time"
 
@@ -60,11 +59,11 @@ func randomColor() color.NRGBA {
 func findClosestSeed(c *Cells, x, y int) (int8, pixel.Vec) {
 	v := pixel.V(float64(x), float64(y))
 	var closestCellIndex int8
-	var minDistance float64
-	var currentDistance float64
-	minDistance = c.bounds.Size().Len()
+	var minDistance int
+	var currentDistance int
+	minDistance = distance(c.boundsMaxX, c.boundsMaxY)
 	for i, cell := range c.cells {
-		currentDistance = v.Sub(cell.center).Len()
+		currentDistance = distance(cell.cx-x, cell.cy-y)
 		if currentDistance <= minDistance {
 			closestCellIndex = int8(i)
 			minDistance = currentDistance
@@ -142,11 +141,9 @@ func (d *Cells) generateVoronoi() {
 	}
 }
 
-// distance between two vectors. This is the same as v1.Sub(v2).Len()
-// TODO: Test these to find most efficient option
-func distance(v1, v2 pixel.Vec) float64 {
-	return math.Sqrt(math.Pow(v1.X-v2.X, 2) + math.Pow(v1.Y-v2.Y, 2))
-	// return v1.Sub(v2).Len()
+// uses dot to efficently calcuate distance between two points.
+func distance(x, y int) int {
+	return x*x + y*y
 }
 
 func (d *Cells) draw(tgt pixel.Target) {
