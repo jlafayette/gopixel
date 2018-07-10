@@ -62,8 +62,8 @@ func findClosestSeed(c *Cells, x, y int) (int8, pixel.Vec) {
 	var minDistance int
 	var currentDistance int
 	minDistance = distance(c.boundsMaxX, c.boundsMaxY)
-	for i, cell := range c.cells {
-		currentDistance = distance(cell.cx-x, cell.cy-y)
+	for i := 0; i < len(c.cells); i++ {
+		currentDistance = distance(c.cells[i].cx-x, c.cells[i].cy-y)
 		if currentDistance <= minDistance {
 			closestCellIndex = int8(i)
 			minDistance = currentDistance
