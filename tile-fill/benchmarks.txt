@@ -8,3 +8,7 @@ BenchmarkCells_generateVoronoi-4             200         143454313 ns/op
 
 $ go test -run=XXX -bench=. -benchmem
 BenchmarkCells_generateVoronoi-4              10         144054910 ns/op           36440 B/op        363 allocs/op
+
+ROUND 2
+BenchmarkCells_generateVoronoi-4              10         143153320 ns/op         1315352 B/op            361 allocs/op
+BenchmarkCells_generateVoronoi-4             200         143035020 ns/op         1315747 B/op            362 allocs/op

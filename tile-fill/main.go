@@ -63,30 +63,31 @@ func (d *Cells) generateVoronoi() {
 	var minDistance float64
 	var currentDistance float64
 	var closestCellIndex int
-	leftIndex := -1
-	bttmIndexes := make([]int, d.boundsMaxX)
-	nextBtIndexes := make([]int, d.boundsMaxX)
-	for i := 0; i < d.boundsMaxX; i++ {
-		nextBtIndexes[i] = -1
-	}
-	// start at lower left, process the whole row, then go up one and and continue
-	for y := 0; y < d.boundsMaxY; y++ {
-		for i := 0; i < d.boundsMaxX; i++ {
-			bttmIndexes[i] = nextBtIndexes[i]
-		}
-		for x := 0; x < d.boundsMaxX; x++ {
 
-			closestCellIndex = -1
-			if x == d.boundsMaxX {
-				// far right case
-				v = pixel.V(float64(x), float64(y))
-			} else if y == d.boundsMaxY {
-				// top case
-				v = pixel.V(float64(x), float64(y))
-			} else {
-				v = pixel.V(float64(x), float64(y))
-			}
-			// find closest cell center
+	width := d.boundsMaxX
+	height := d.boundsMaxY
+	master := make([]int, width*height)
+
+	// top right corner
+	x := width - 1
+	y := height - 1
+	v = pixel.V(float64(x), float64(y))
+	minDistance = d.bounds.Size().Len()
+	for i, cell := range d.cells {
+		currentDistance = v.Sub(cell.center).Len()
+		if currentDistance <= minDistance {
+			closestCellIndex = i
+			minDistance = currentDistance
+		}
+	}
+	master[x+y*width] = closestCellIndex
+	d.cells[closestCellIndex].addPoint(v)
+
+	// horizontal edges and left corners
+	for _, y := range []int{0, height - 1} {
+		leftIndex := -1
+		for x := 0; x < width-1; x++ {
+			v = pixel.V(float64(x), float64(y))
 			minDistance = d.bounds.Size().Len()
 			for i, cell := range d.cells {
 				currentDistance = v.Sub(cell.center).Len()
@@ -95,92 +96,70 @@ func (d *Cells) generateVoronoi() {
 					minDistance = currentDistance
 				}
 			}
-
-			// 0 bt lf corner
-			// 1    lf edge
-			// 2 tp lf corner
-			// 3 tp    edge
-			// 4 tp rt corner
-			// 5    rt edge
-			// 6 bt rt corner
-			// 7 bt    edge
-			// 8 middle
-			var edgeCornerStatus int
-			if x == 0 {
-				if y == 0 {
-					edgeCornerStatus = 0
-				} else if y >= d.boundsMaxY-1 {
-					edgeCornerStatus = 2
-				} else {
-					edgeCornerStatus = 1
-				}
-			} else if x >= d.boundsMaxX-1 {
-				if y == 0 {
-					edgeCornerStatus = 6
-				} else if y >= d.boundsMaxY-1 {
-					edgeCornerStatus = 4
-				} else {
-					edgeCornerStatus = 5
-				}
-			} else {
-				if y == 0 {
-					edgeCornerStatus = 7
-				} else if y >= d.boundsMaxY-1 {
-					edgeCornerStatus = 3
-				} else {
-					edgeCornerStatus = 8
-				}
-			}
-
-			switch edgeCornerStatus {
-			case 0: // 0 bt lf corner
+			master[x+y*width] = closestCellIndex
+			if closestCellIndex != leftIndex {
 				d.cells[closestCellIndex].addPoint(v)
-			case 1: // 1    lf edge
-				if closestCellIndex != bttmIndexes[x] {
-					d.cells[closestCellIndex].addPoint(v)
-					d.cells[bttmIndexes[x]].addPoint(v)
-				}
-			case 2: // 2 tp lf corner
-				d.cells[closestCellIndex].addPoint(v)
-			case 3: // 3 tp    edge
-				if closestCellIndex != leftIndex {
-					d.cells[closestCellIndex].addPoint(v)
+				if leftIndex >= 0 {
 					d.cells[leftIndex].addPoint(v)
-				}
-			case 4: // 4 tp rt corner
-				d.cells[closestCellIndex].addPoint(v)
-			case 5: // 5    rt edge
-				if closestCellIndex != bttmIndexes[x] {
-					d.cells[closestCellIndex].addPoint(v)
-					d.cells[bttmIndexes[x]].addPoint(v)
-				}
-			case 6: // 6 bt rt corner
-				d.cells[closestCellIndex].addPoint(v)
-			case 7: // 7 bt    edge
-				if closestCellIndex != leftIndex {
-					d.cells[closestCellIndex].addPoint(v)
-					d.cells[leftIndex].addPoint(v)
-				}
-			default: // 8 middle
-				// idSet stores a map of the different cell indexes that are around the current
-				// pixel being evaluated. Pixels being evaluated are the current pixel, the
-				// pixel to the left, the pixel down, the pixel down and to the left. If 3 or
-				// more of them are different, it's a vertex.
-				idSet := make(map[int]bool)
-				idSet[closestCellIndex] = true
-				idSet[leftIndex] = true
-				idSet[bttmIndexes[x]] = true
-				idSet[bttmIndexes[x-1]] = true
-				if len(idSet) > 2 {
-					for k := range idSet {
-						if k >= 0 {
-							d.cells[k].addPoint(v)
-						}
-					}
 				}
 			}
 			leftIndex = closestCellIndex
-			nextBtIndexes[x] = closestCellIndex
+		}
+	}
+	// vertical edges
+	for _, x := range []int{0, width - 1} {
+		btIndex := -1
+		for y := 0; y < height-1; y++ {
+			v = pixel.V(float64(x), float64(y))
+			minDistance = d.bounds.Size().Len()
+			for i, cell := range d.cells {
+				currentDistance = v.Sub(cell.center).Len()
+				if currentDistance <= minDistance {
+					closestCellIndex = i
+					minDistance = currentDistance
+				}
+			}
+			master[x+y*width] = closestCellIndex
+			if closestCellIndex != btIndex {
+				d.cells[closestCellIndex].addPoint(v)
+				if btIndex >= 0 {
+					d.cells[btIndex].addPoint(v)
+				}
+			}
+			btIndex = closestCellIndex
+		}
+	}
+	// middle points
+	for y := 1; y < height; y++ {
+		for x := 1; x < width; x++ {
+			// find closest cell center
+			closestCellIndex = -1
+			v = pixel.V(float64(x), float64(y))
+			minDistance = d.bounds.Size().Len()
+			for i, cell := range d.cells {
+				currentDistance = v.Sub(cell.center).Len()
+				if currentDistance <= minDistance {
+					closestCellIndex = i
+					minDistance = currentDistance
+				}
+			}
+			master[x+y*width] = closestCellIndex
+			// idSet stores a map of the different cell indexes that are around the current
+			// pixel being evaluated. Pixels being evaluated are the current pixel, the
+			// pixel to the left, the pixel down, the pixel down and to the left. If 3 or
+			// more of them are different, it's a vertex.
+			idSet := make(map[int]bool)
+			idSet[closestCellIndex] = true
+			idSet[master[(x-1)+y*width]] = true
+			idSet[master[x+(y-1)*width]] = true
+			idSet[master[(x-1)+(y-1)*width]] = true
+			if len(idSet) > 2 {
+				for k := range idSet {
+					if k >= 0 {
+						d.cells[k].addPoint(v)
+					}
+				}
+			}
 		}
 	}
 }
