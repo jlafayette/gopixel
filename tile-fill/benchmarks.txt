@@ -1,0 +1,10 @@
+ROUND 1
+
+c := NewCells(25, pixel.R(0, 0, 400, 400))
+c.generateVoronoi()
+
+$ go test -run=XXX -bench=. -benchtime=20s
+BenchmarkCells_generateVoronoi-4             200         143454313 ns/op
+
+$ go test -run=XXX -bench=. -benchmem
+BenchmarkCells_generateVoronoi-4              10         144054910 ns/op           36440 B/op        363 allocs/op
