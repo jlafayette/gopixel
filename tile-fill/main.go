@@ -8,15 +8,14 @@ import (
 	"time"
 
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 )
 
 const (
-	imageWidth  = 800
-	imageHeight = 650
-	nSites      = 3
+	imageWidth  = 600
+	imageHeight = 600
+	nSites      = 25
 )
 
 // Cells ...
@@ -58,14 +57,6 @@ func randomColor() color.NRGBA {
 	}
 }
 
-// draw the dots
-func (d *Cells) drawdots(imd *imdraw.IMDraw) {
-	for _, cell := range d.cells {
-		imd.Push(cell.center)
-		imd.Circle(5, 0)
-	}
-}
-
 func (d *Cells) generateVoronoi() {
 	// evaluate each pixel
 	var v pixel.Vec
@@ -73,17 +64,17 @@ func (d *Cells) generateVoronoi() {
 	var currentDistance float64
 	var closestCellIndex int
 	leftIndex := -1
-	bttmIndexes := make([]int, d.boundsMaxX+1)
-	nextBtIndexes := make([]int, d.boundsMaxX+1)
-	for i := 0; i < d.boundsMaxX+1; i++ {
+	bttmIndexes := make([]int, d.boundsMaxX)
+	nextBtIndexes := make([]int, d.boundsMaxX)
+	for i := 0; i < d.boundsMaxX; i++ {
 		nextBtIndexes[i] = -1
 	}
 	// start at lower left, process the whole row, then go up one and and continue
-	for y := 0; y < d.boundsMaxY+1; y++ {
-		for i := 0; i < d.boundsMaxX+1; i++ {
+	for y := 0; y < d.boundsMaxY; y++ {
+		for i := 0; i < d.boundsMaxX; i++ {
 			bttmIndexes[i] = nextBtIndexes[i]
 		}
-		for x := 0; x < d.boundsMaxX+1; x++ {
+		for x := 0; x < d.boundsMaxX; x++ {
 
 			closestCellIndex = -1
 			if x == d.boundsMaxX {
@@ -118,15 +109,15 @@ func (d *Cells) generateVoronoi() {
 			if x == 0 {
 				if y == 0 {
 					edgeCornerStatus = 0
-				} else if y >= d.boundsMaxY {
+				} else if y >= d.boundsMaxY-1 {
 					edgeCornerStatus = 2
 				} else {
 					edgeCornerStatus = 1
 				}
-			} else if x >= d.boundsMaxX {
+			} else if x >= d.boundsMaxX-1 {
 				if y == 0 {
 					edgeCornerStatus = 6
-				} else if y >= d.boundsMaxY {
+				} else if y >= d.boundsMaxY-1 {
 					edgeCornerStatus = 4
 				} else {
 					edgeCornerStatus = 5
@@ -134,7 +125,7 @@ func (d *Cells) generateVoronoi() {
 			} else {
 				if y == 0 {
 					edgeCornerStatus = 7
-				} else if y >= d.boundsMaxY {
+				} else if y >= d.boundsMaxY-1 {
 					edgeCornerStatus = 3
 				} else {
 					edgeCornerStatus = 8
@@ -238,7 +229,6 @@ func run() {
 	sprite.Draw(win, mat)
 
 	// imd.Clear()
-	// d.drawdots(imd)
 	c.generateVoronoi()
 	c.draw(win)
 	// imd.Draw(win)
