@@ -48,6 +48,14 @@ func NewCells(n int, bounds pixel.Rect) Cells {
 	return newcells
 }
 
+func (c *Cells) randomize() {
+	for i := 0; i < len(c.cells); i++ {
+		x := rand.Intn(c.boundsMaxX-c.boundsMinX) + c.boundsMinX
+		y := rand.Intn(c.boundsMaxY-c.boundsMinY) + c.boundsMinY
+		c.cells[i].reset(x, y)
+	}
+}
+
 // randomColor generates a random color
 func randomColor() color.NRGBA {
 	return color.NRGBA{
@@ -148,18 +156,19 @@ func distance(x, y int) int {
 	return x*x + y*y
 }
 
-func (c *Cells) draw(tgt pixel.Target, imd *imdraw.IMDraw) {
+func (c *Cells) draw(imd *imdraw.IMDraw) {
 	for _, cell := range c.cells {
-		cell.draw(tgt, imd)
+		cell.draw(imd)
 	}
 }
 
-func (c *Cells) drawDebug(tgt pixel.Target) {
+func (c *Cells) drawDebug(tgt pixel.Target, imd *imdraw.IMDraw) {
 	for _, cell := range c.cells {
 		imd := imdraw.New(nil)
 		imd.Color = randomColor()
 		imd.EndShape = imdraw.NoEndShape
-		cell.drawDebug(tgt, imd)
+		cell.drawDebug(imd)
+		imd.Draw(tgt)
 	}
 }
 
@@ -175,39 +184,35 @@ func run() {
 		panic(err)
 	}
 
-	imd := imdraw.New(nil)
-	imd.Color = colornames.Black
-	imd.EndShape = imdraw.NoEndShape
-
-	rand.Seed(time.Now().Unix())
-	// rand.Seed(99)
-	c := NewCells(nSites, win.Bounds())
-
-	// pic := generateVoronoi(sitesFromCells(c))
-	// sprite := pixel.NewSprite(pic, win.Bounds())
-
-	win.Clear(color.RGBA{220, 220, 220, 255})
-
-	// mat := pixel.IM
-	// mat = mat.Moved(win.Bounds().Center())
-	// mat = mat.ScaledXY(win.Bounds().Center(), pixel.V(1, -1))
-	// sprite.Draw(win, mat)
-
-	// imd.Clear()
-	c.generateVoronoi()
-	c.draw(win, imd)
-	// imd.Draw(win)
-
 	var (
 		frames = 0
 		second = time.Tick(time.Second)
 	)
 
+	c := NewCells(nSites, win.Bounds())
+	first := true
+	background := color.RGBA{220, 220, 220, 255}
+	foreground := colornames.Black
+	imd := imdraw.New(nil)
+	imd.Color = foreground
+	imd.EndShape = imdraw.NoEndShape
+
 	// main loop
 	for !win.Closed() {
-		// UPDATE
+		if win.JustPressed(pixelgl.KeySpace) || first {
+			// new voronoi!
+			seed := time.Now().UnixNano()
+			fmt.Printf("running %v\n", seed)
+			rand.Seed(seed)
+			win.Clear(background)
+			imd.Clear()
+			c.randomize()
+			c.generateVoronoi()
+			c.draw(imd)
+			imd.Draw(win)
+			first = false
+		}
 
-		// DRAW
 		win.Update()
 
 		// framerate

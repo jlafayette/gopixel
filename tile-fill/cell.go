@@ -27,6 +27,13 @@ func NewCell(x, y, id int) Cell {
 	}
 }
 
+func (c *Cell) reset(x, y int) {
+	c.center = pixel.V(float64(x), float64(y))
+	c.cx = x
+	c.cy = y
+	c.points = nil
+}
+
 func (c *Cell) addPoint(v pixel.Vec) {
 	c.points = append(c.points, pt{v, &c.center})
 }
@@ -81,17 +88,15 @@ func (c *Cell) createSpokes(imd *imdraw.IMDraw) {
 	}
 }
 
-func (c *Cell) draw(tgt pixel.Target, imd *imdraw.IMDraw) {
+func (c *Cell) draw(imd *imdraw.IMDraw) {
 	c.createOutline(imd)
 	imd.Push(c.center)
 	imd.Circle(5, 0)
-	imd.Draw(tgt)
 }
 
-func (c *Cell) drawDebug(tgt pixel.Target, imd *imdraw.IMDraw) {
+func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 	c.createSpokes(imd)
 	c.createOffsetOutline(imd)
 	imd.Push(c.center)
 	imd.Circle(7, 2)
-	imd.Draw(tgt)
 }
