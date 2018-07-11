@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/faiface/pixel/imdraw"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
@@ -146,9 +148,18 @@ func distance(x, y int) int {
 	return x*x + y*y
 }
 
-func (c *Cells) draw(tgt pixel.Target) {
+func (c *Cells) draw(tgt pixel.Target, imd *imdraw.IMDraw) {
 	for _, cell := range c.cells {
-		cell.draw(tgt)
+		cell.draw(tgt, imd)
+	}
+}
+
+func (c *Cells) drawDebug(tgt pixel.Target) {
+	for _, cell := range c.cells {
+		imd := imdraw.New(nil)
+		imd.Color = randomColor()
+		imd.EndShape = imdraw.NoEndShape
+		cell.drawDebug(tgt, imd)
 	}
 }
 
@@ -164,27 +175,27 @@ func run() {
 		panic(err)
 	}
 
-	// imd := imdraw.New(nil)
-	// imd.Color = colornames.Whitesmoke
-	// imd.EndShape = imdraw.NoEndShape
+	imd := imdraw.New(nil)
+	imd.Color = colornames.Black
+	imd.EndShape = imdraw.NoEndShape
 
 	rand.Seed(time.Now().Unix())
 	// rand.Seed(99)
 	c := NewCells(nSites, win.Bounds())
 
-	pic := generateVoronoi(sitesFromCells(c))
-	sprite := pixel.NewSprite(pic, win.Bounds())
-	// Move to main loop later ... testing voronoi
-	win.Clear(colornames.Gray)
+	// pic := generateVoronoi(sitesFromCells(c))
+	// sprite := pixel.NewSprite(pic, win.Bounds())
 
-	mat := pixel.IM
-	mat = mat.Moved(win.Bounds().Center())
-	mat = mat.ScaledXY(win.Bounds().Center(), pixel.V(1, -1))
-	sprite.Draw(win, mat)
+	win.Clear(color.RGBA{220, 220, 220, 255})
+
+	// mat := pixel.IM
+	// mat = mat.Moved(win.Bounds().Center())
+	// mat = mat.ScaledXY(win.Bounds().Center(), pixel.V(1, -1))
+	// sprite.Draw(win, mat)
 
 	// imd.Clear()
 	c.generateVoronoi()
-	c.draw(win)
+	c.draw(win, imd)
 	// imd.Draw(win)
 
 	var (

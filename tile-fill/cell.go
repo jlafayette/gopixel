@@ -3,15 +3,15 @@ package main
 import (
 	"sort"
 
-	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
+
+	"github.com/faiface/pixel"
 )
 
 // Cell ...
 type Cell struct {
 	center pixel.Vec
 	points points
-	imd    imdraw.IMDraw
 	cx     int
 	cy     int
 	id     int
@@ -19,12 +19,8 @@ type Cell struct {
 
 // NewCell ...
 func NewCell(x, y, id int) Cell {
-	imd := *imdraw.New(nil)
-	imd.Color = randomColor()
-	imd.EndShape = imdraw.NoEndShape
 	return Cell{
 		center: pixel.V(float64(x), float64(y)),
-		imd:    imd,
 		cx:     x,
 		cy:     y,
 		id:     id,
@@ -61,30 +57,41 @@ func (p pt) angle() float64 {
 	return p.center.Sub(p.v).Angle()
 }
 
-func (c *Cell) createOutline() {
+func (c *Cell) createOutline(imd *imdraw.IMDraw) {
+	c.orderPoints()
+	for _, pt := range c.points {
+		imd.Push(pt.v)
+	}
+	imd.Polygon(2)
+}
+
+func (c *Cell) createOffsetOutline(imd *imdraw.IMDraw) {
 	c.orderPoints()
 	for _, pt := range c.points {
 		nudgeV := c.center.Sub(pt.v).Unit().Scaled(2)
-		c.imd.Push(pt.v.Add(nudgeV))
+		imd.Push(pt.v.Add(nudgeV))
 	}
-	c.imd.Polygon(1)
+	imd.Polygon(1)
 }
 
-func (c *Cell) createSpokes() {
+func (c *Cell) createSpokes(imd *imdraw.IMDraw) {
 	for _, pt := range c.points {
-		c.imd.Push(c.center, pt.v)
-		c.imd.Line(1)
+		imd.Push(c.center, pt.v)
+		imd.Line(1)
 	}
 }
 
-func (c *Cell) draw(tgt pixel.Target) {
-	// fmt.Printf("calling draw for pt: %v\n", c.center)
-	// for _, pt := range c.points {
-	// 	fmt.Printf("    pt: %v\n", pt.v)
-	// }
-	c.createSpokes()
-	c.createOutline()
-	c.imd.Push(c.center)
-	c.imd.Circle(7, 2)
-	c.imd.Draw(tgt)
+func (c *Cell) draw(tgt pixel.Target, imd *imdraw.IMDraw) {
+	c.createOutline(imd)
+	imd.Push(c.center)
+	imd.Circle(5, 0)
+	imd.Draw(tgt)
+}
+
+func (c *Cell) drawDebug(tgt pixel.Target, imd *imdraw.IMDraw) {
+	c.createSpokes(imd)
+	c.createOffsetOutline(imd)
+	imd.Push(c.center)
+	imd.Circle(7, 2)
+	imd.Draw(tgt)
 }
