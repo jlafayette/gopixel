@@ -56,16 +56,16 @@ func randomColor() color.NRGBA {
 	}
 }
 
-func findClosestSeed(c *Cells, x, y int) (int8, pixel.Vec) {
+func findClosestSeed(c *Cells, x, y int) (int16, pixel.Vec) {
 	v := pixel.V(float64(x), float64(y))
-	var closestCellIndex int8
+	var closestCellIndex int16
 	var minDistance int
 	var currentDistance int
 	minDistance = distance(c.boundsMaxX, c.boundsMaxY)
 	for i := 0; i < len(c.cells); i++ {
 		currentDistance = distance(c.cells[i].cx-x, c.cells[i].cy-y)
 		if currentDistance <= minDistance {
-			closestCellIndex = int8(i)
+			closestCellIndex = int16(i)
 			minDistance = currentDistance
 		}
 	}
@@ -75,7 +75,7 @@ func findClosestSeed(c *Cells, x, y int) (int8, pixel.Vec) {
 func (d *Cells) generateVoronoi() {
 	width := d.boundsMaxX
 	height := d.boundsMaxY
-	master := make([]int8, width*height)
+	master := make([]int16, width*height)
 
 	// top right corner
 	x := width - 1
@@ -85,7 +85,7 @@ func (d *Cells) generateVoronoi() {
 	master[x+y*width] = closestCellIndex
 
 	// horizontal edges and left corners
-	var leftIndex int8
+	var leftIndex int16
 	for _, y := range []int{0, height - 1} {
 		leftIndex = -1
 		for x := 0; x < width-1; x++ {
@@ -102,7 +102,7 @@ func (d *Cells) generateVoronoi() {
 	}
 	// vertical edges
 	for _, x := range []int{0, width - 1} {
-		var btIndex int8
+		var btIndex int16
 		btIndex = -1
 		for y := 0; y < height-1; y++ {
 			closestCellIndex, v := findClosestSeed(d, x, y)
@@ -125,7 +125,7 @@ func (d *Cells) generateVoronoi() {
 			// pixel being evaluated. Pixels being evaluated are the current pixel, the
 			// pixel to the left, the pixel down, the pixel down and to the left. If 3 or
 			// more of them are different, it's a vertex.
-			idSet := make(map[int8]bool)
+			idSet := make(map[int16]bool)
 			idSet[closestCellIndex] = true
 			idSet[master[(x-1)+y*width]] = true
 			idSet[master[x+(y-1)*width]] = true

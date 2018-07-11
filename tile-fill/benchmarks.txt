@@ -27,3 +27,6 @@ BenchmarkCells_generateVoronoi-4              20          76676270 ns/op        
 
 ROUND 6 (don't copy large structs (Cell) in loops, access by index instead)
 BenchmarkCells_generateVoronoi-4              50          25831776 ns/op          193111 B/op        359 allocs/op
+
+ROUND 7 (int16 instead of int8)
+BenchmarkCells_generateVoronoi-4              50          25411590 ns/op          357152 B/op        358 allocs/op
