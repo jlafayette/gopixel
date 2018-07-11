@@ -57,8 +57,8 @@ func sitesFromCells(c Cells) (sx, sy []int) {
 	sx = make([]int, len(c.cells))
 	sy = make([]int, len(c.cells))
 	for i, cell := range c.cells {
-		sx[i] = cell.cx
-		sy[i] = cell.cy
+		sx[i] = cell.seedX
+		sy[i] = cell.seedY
 	}
 	return
 }

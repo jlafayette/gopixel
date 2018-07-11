@@ -10,35 +10,37 @@ import (
 
 // Cell ...
 type Cell struct {
-	center pixel.Vec
+	seedV  pixel.Vec
 	points points
-	cx     int
-	cy     int
-	id     int
+	seedX  int
+	seedY  int
 }
 
 // NewCell ...
-func NewCell(x, y, id int) Cell {
+func NewCell(x, y int) Cell {
 	return Cell{
-		center: pixel.V(float64(x), float64(y)),
-		cx:     x,
-		cy:     y,
-		id:     id,
+		seedV: pixel.V(float64(x), float64(y)),
+		seedX: x,
+		seedY: y,
 	}
 }
 
 func (c *Cell) reset(x, y int) {
-	c.center = pixel.V(float64(x), float64(y))
-	c.cx = x
-	c.cy = y
+	c.seedV = pixel.V(float64(x), float64(y))
+	c.seedX = x
+	c.seedY = y
 	c.points = nil
 }
 
-func (c *Cell) addPoint(v pixel.Vec) {
-	c.points = append(c.points, pt{v, &c.center})
+func (c *Cell) update() {
+	c.orderPoints()
 }
 
-// order points clockwise around center
+func (c *Cell) addPoint(v pixel.Vec) {
+	c.points = append(c.points, pt{v, &c.seedV})
+}
+
+// order points clockwise around seed vector
 func (c *Cell) orderPoints() {
 	sort.Sort(c.points)
 }
@@ -56,12 +58,12 @@ func (p points) Less(i, j int) bool {
 }
 
 type pt struct {
-	v      pixel.Vec
-	center *pixel.Vec
+	v     pixel.Vec
+	seedV *pixel.Vec
 }
 
 func (p pt) angle() float64 {
-	return p.center.Sub(p.v).Angle()
+	return p.seedV.Sub(p.v).Angle()
 }
 
 func (c *Cell) createOutline(imd *imdraw.IMDraw) {
@@ -75,7 +77,7 @@ func (c *Cell) createOutline(imd *imdraw.IMDraw) {
 func (c *Cell) createOffsetOutline(imd *imdraw.IMDraw) {
 	c.orderPoints()
 	for _, pt := range c.points {
-		nudgeV := c.center.Sub(pt.v).Unit().Scaled(2)
+		nudgeV := c.seedV.Sub(pt.v).Unit().Scaled(2)
 		imd.Push(pt.v.Add(nudgeV))
 	}
 	imd.Polygon(1)
@@ -83,20 +85,20 @@ func (c *Cell) createOffsetOutline(imd *imdraw.IMDraw) {
 
 func (c *Cell) createSpokes(imd *imdraw.IMDraw) {
 	for _, pt := range c.points {
-		imd.Push(c.center, pt.v)
+		imd.Push(c.seedV, pt.v)
 		imd.Line(1)
 	}
 }
 
 func (c *Cell) draw(imd *imdraw.IMDraw) {
 	c.createOutline(imd)
-	imd.Push(c.center)
-	imd.Circle(5, 0)
+	imd.Push(c.seedV)
+	imd.Circle(2, 0)
 }
 
 func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 	c.createSpokes(imd)
 	c.createOffsetOutline(imd)
-	imd.Push(c.center)
+	imd.Push(c.seedV)
 	imd.Circle(7, 2)
 }

@@ -16,7 +16,7 @@ import (
 const (
 	imageWidth  = 600
 	imageHeight = 600
-	nSites      = 25
+	nSites      = 50
 )
 
 // Cells ...
@@ -30,7 +30,8 @@ type Cells struct {
 }
 
 // NewCells returns a new Cells object with given number of cells
-// For easier pixel calulations, each cell center is always an integer
+// For easier pixel calulations, each cell seed has an int for x
+// and y.
 func NewCells(n int, bounds pixel.Rect) Cells {
 	newcells := Cells{
 		bounds:     bounds,
@@ -43,7 +44,7 @@ func NewCells(n int, bounds pixel.Rect) Cells {
 	for i := 0; i < n; i++ {
 		x := rand.Intn(newcells.boundsMaxX-newcells.boundsMinX) + newcells.boundsMinX
 		y := rand.Intn(newcells.boundsMaxY-newcells.boundsMinY) + newcells.boundsMinY
-		newcells.cells[i] = NewCell(x, y, i)
+		newcells.cells[i] = NewCell(x, y)
 	}
 	return newcells
 }
@@ -73,7 +74,7 @@ func findClosestSeed(c *Cells, x, y int) (int16, pixel.Vec) {
 	var currentDistance int
 	minDistance = distance(c.boundsMaxX, c.boundsMaxY)
 	for i := 0; i < len(c.cells); i++ {
-		currentDistance = distance(c.cells[i].cx-x, c.cells[i].cy-y)
+		currentDistance = distance(c.cells[i].seedX-x, c.cells[i].seedY-y)
 		if currentDistance <= minDistance {
 			closestSeedIndex = int16(i)
 			minDistance = currentDistance
