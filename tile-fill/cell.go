@@ -10,10 +10,11 @@ import (
 
 // Cell ...
 type Cell struct {
-	seedV  pixel.Vec
-	points points
-	seedX  int
-	seedY  int
+	seedV     pixel.Vec
+	centroidV pixel.Vec
+	points    points
+	seedX     int
+	seedY     int
 }
 
 // NewCell ...
@@ -34,6 +35,11 @@ func (c *Cell) reset(x, y int) {
 
 func (c *Cell) update() {
 	c.orderPoints()
+	c.computeCentroid()
+}
+
+func (c *Cell) computeCentroid() {
+
 }
 
 func (c *Cell) addPoint(v pixel.Vec) {
@@ -97,8 +103,30 @@ func (c *Cell) draw(imd *imdraw.IMDraw) {
 }
 
 func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
-	c.createSpokes(imd)
-	c.createOffsetOutline(imd)
+	// c.createSpokes(imd)
+	// c.createOffsetOutline(imd)
+	// imd.Push(c.seedV)
+	// imd.Circle(7, 2)
+
 	imd.Push(c.seedV)
-	imd.Circle(7, 2)
+	imd.Circle(3, 0)
+
+	// figuring out centroid visually here first
+	end := 2
+	a := c.points[0].v
+	for end < len(c.points) {
+		b := c.points[end-1].v
+		c := c.points[end].v
+
+		x := (a.X + b.X + c.X) / 3
+		y := (a.Y + b.Y + c.Y) / 3
+		imd.Push(pixel.V(x, y))
+		imd.Circle(5, 1)
+
+		imd.Push(a)
+		imd.Push(b)
+		imd.Push(c)
+		imd.Polygon(1)
+		end++
+	}
 }

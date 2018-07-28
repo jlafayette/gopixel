@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	imageWidth  = 600
-	imageHeight = 600
+	imageWidth  = 800
+	imageHeight = 800
 	nSites      = 50
 )
 
@@ -58,11 +58,11 @@ func (c *Cells) randomize() {
 }
 
 // randomColor generates a random color
-func randomColor() color.NRGBA {
+func randomColor(lo, hi int) color.NRGBA {
 	return color.NRGBA{
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
+		uint8(rand.Intn(hi) - lo),
+		uint8(rand.Intn(hi) - lo),
+		uint8(rand.Intn(hi) - lo),
 		255,
 	}
 }
@@ -88,16 +88,18 @@ func (c *Cells) generateVoronoi() {
 	height := c.boundsMaxY
 	master := make([]int16, width*height)
 
-	// top right corner
-	x := width - 1
-	y := height - 1
-	closestSeedIndex, v := findClosestSeed(c, x, y)
-	c.cells[closestSeedIndex].addPoint(v)
-	master[x+y*width] = closestSeedIndex
+	// right corners
+	for _, y := range []int{0, height - 1} {
+		x := width - 1
+		//y := height - 1
+		closestSeedIndex, v := findClosestSeed(c, x, y)
+		c.cells[closestSeedIndex].addPoint(v)
+		master[x+y*width] = closestSeedIndex
+	}
 
 	// horizontal edges and left corners
-	var leftIndex int16
 	for _, y := range []int{0, height - 1} {
+		var leftIndex int16
 		leftIndex = -1
 		for x := 0; x < width-1; x++ {
 			closestSeedIndex, v := findClosestSeed(c, x, y)
@@ -114,8 +116,8 @@ func (c *Cells) generateVoronoi() {
 	// vertical edges
 	for _, x := range []int{0, width - 1} {
 		var btIndex int16
-		btIndex = -1
-		for y := 0; y < height-1; y++ {
+		btIndex = master[x+0*width] // y is 0 for starting case
+		for y := 1; y < height-1; y++ {
 			closestSeedIndex, v := findClosestSeed(c, x, y)
 			master[x+y*width] = closestSeedIndex
 			if closestSeedIndex != btIndex {
@@ -157,19 +159,22 @@ func distance(x, y int) int {
 	return x*x + y*y
 }
 
+func (c *Cells) update() {
+	for _, cell := range c.cells {
+		cell.update()
+	}
+}
+
 func (c *Cells) draw(imd *imdraw.IMDraw) {
 	for _, cell := range c.cells {
 		cell.draw(imd)
 	}
 }
 
-func (c *Cells) drawDebug(tgt pixel.Target, imd *imdraw.IMDraw) {
+func (c *Cells) drawDebug(imd *imdraw.IMDraw) {
 	for _, cell := range c.cells {
-		imd := imdraw.New(nil)
-		imd.Color = randomColor()
-		imd.EndShape = imdraw.NoEndShape
+		imd.Color = randomColor(10, 150)
 		cell.drawDebug(imd)
-		imd.Draw(tgt)
 	}
 }
 
@@ -209,9 +214,23 @@ func run() {
 			imd.Clear()
 			c.randomize()
 			c.generateVoronoi()
-			c.draw(imd)
+			c.update()
+			// c.draw(imd)
+			c.drawDebug(imd)
 			imd.Draw(win)
 			first = false
+		}
+		if win.JustPressed(pixelgl.KeyLeftControl) {
+			win.Clear(background)
+			imd.Clear()
+			c.draw(imd)
+			imd.Draw(win)
+		}
+		if win.JustReleased(pixelgl.KeyLeftControl) {
+			win.Clear(background)
+			imd.Clear()
+			c.drawDebug(imd)
+			imd.Draw(win)
 		}
 
 		win.Update()
