@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	imageWidth  = 800
-	imageHeight = 800
+	imageWidth  = 300 //800
+	imageHeight = 300 //800
 	nSites      = 50
 )
 
@@ -45,6 +45,25 @@ func NewCells(n int, bounds pixel.Rect) Cells {
 		x := rand.Intn(newcells.boundsMaxX-newcells.boundsMinX) + newcells.boundsMinX
 		y := rand.Intn(newcells.boundsMaxY-newcells.boundsMinY) + newcells.boundsMinY
 		newcells.cells[i] = NewCell(x, y)
+	}
+	return newcells
+}
+
+// NewCentroidTestCells generates a particular set of cells to compare against a centroid example
+func NewCentroidTestCells(bounds pixel.Rect) Cells {
+	newcells := Cells{
+		bounds:     bounds,
+		boundsMinX: int(bounds.Min.X),
+		boundsMaxX: int(bounds.Max.X),
+		boundsMinY: int(bounds.Min.Y),
+		boundsMaxY: int(bounds.Max.Y),
+		cells: []Cell{
+			NewCell(127, 273),
+			NewCell(134, 208),
+			NewCell(191, 288),
+			NewCell(198, 254),
+			NewCell(198, 153),
+		},
 	}
 	return newcells
 }
@@ -195,7 +214,8 @@ func run() {
 		second = time.Tick(time.Second)
 	)
 
-	c := NewCells(nSites, win.Bounds())
+	// c := NewCells(nSites, win.Bounds())
+	c := NewCentroidTestCells(win.Bounds())
 	first := true
 	background := color.RGBA{220, 220, 220, 255}
 	foreground := colornames.Black
@@ -212,7 +232,7 @@ func run() {
 			rand.Seed(seed)
 			win.Clear(background)
 			imd.Clear()
-			c.randomize()
+			// c.randomize()
 			c.generateVoronoi()
 			c.update()
 			// c.draw(imd)

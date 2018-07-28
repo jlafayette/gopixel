@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"sort"
 
 	"github.com/faiface/pixel/imdraw"
@@ -112,15 +114,31 @@ func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 	imd.Circle(3, 0)
 
 	// figuring out centroid visually here first
+
+	type triangle struct {
+		centroid pixel.Vec
+		area     float64
+	}
+	var tris []triangle
+
 	end := 2
 	a := c.points[0].v
 	for end < len(c.points) {
+		// centroid
 		b := c.points[end-1].v
 		c := c.points[end].v
-
 		x := (a.X + b.X + c.X) / 3
 		y := (a.Y + b.Y + c.Y) / 3
-		imd.Push(pixel.V(x, y))
+
+		// area
+		// 1/2 * | x1y2 + x2y3 + x3y1 - x2y1 - x3y2 - x1y3 |
+		// 1/2 * | a.X*b.Y + b.X*c.Y + c.X*a.Y - b.X*a.Y - c.X*b.Y - a.X*c.Y |
+		area := .5 * math.Abs(a.X*b.Y+b.X*c.Y+c.X*a.Y-b.X*a.Y-c.X*b.Y-a.X*c.Y)
+
+		t := triangle{pixel.V(x, y), area}
+		tris = append(tris, t)
+
+		imd.Push(t.centroid)
 		imd.Circle(5, 1)
 
 		imd.Push(a)
@@ -129,4 +147,42 @@ func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 		imd.Polygon(1)
 		end++
 	}
+
+	mainCentroid := tris[0].centroid
+	totalArea := tris[0].area
+	// start with main centroid being tri[0].centroid
+	// for each additional triangle, lerp it by the amount of area normalized?
+	for i := 1; i < len(tris); i++ {
+
+		// solve for z
+		// 0 <= z <= 1
+		// a > 0
+		// b > 0
+
+		// a = 1, b = 1, z = .5
+		// a = 2, b = 2, z = .5
+
+		// z = .5 * a / b
+
+		// what times the bigger = smaller (always between 0-1)
+		// small = big * f
+		// f = small / big
+		var f float64
+		if totalArea >= tris[i].area {
+			big := totalArea
+			small := tris[i].area
+			f = .5 * (small / big)
+			mainCentroid = pixel.Lerp(mainCentroid, tris[i].centroid, f)
+		} else {
+			big := tris[i].area
+			small := totalArea
+			f = .5 * (small / big)
+			mainCentroid = pixel.Lerp(tris[i].centroid, mainCentroid, f)
+		}
+		fmt.Println(f)
+		totalArea = totalArea + tris[i].area
+	}
+
+	imd.Push(mainCentroid)
+	imd.Circle(8, 0)
 }
