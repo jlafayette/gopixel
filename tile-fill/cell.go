@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -105,10 +104,6 @@ func (c *Cell) draw(imd *imdraw.IMDraw) {
 }
 
 func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
-	// c.createSpokes(imd)
-	// c.createOffsetOutline(imd)
-	// imd.Push(c.seedV)
-	// imd.Circle(7, 2)
 
 	imd.Push(c.seedV)
 	imd.Circle(3, 0)
@@ -148,41 +143,39 @@ func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 		end++
 	}
 
+	// Start with main centroid and area of the first triangle. For for each
+	// additional triangle, interpolate between them by an amount determined by
+	// their relative areas.
 	mainCentroid := tris[0].centroid
 	totalArea := tris[0].area
-	// start with main centroid being tri[0].centroid
-	// for each additional triangle, lerp it by the amount of area normalized?
 	for i := 1; i < len(tris); i++ {
 
-		// solve for z
-		// 0 <= z <= 1
-		// a > 0
-		// b > 0
-
-		// a = 1, b = 1, z = .5
-		// a = 2, b = 2, z = .5
-
-		// z = .5 * a / b
-
-		// what times the bigger = smaller (always between 0-1)
-		// small = big * f
-		// f = small / big
-		var f float64
+		// Dividing the smaller by the bigger area always gets a number between
+		// zero and one so it's useful for linear interpolation. This isn't the
+		// right number, but if interpolating from big to small then half of it
+		// seems to give the correct amount.
 		if totalArea >= tris[i].area {
 			big := totalArea
 			small := tris[i].area
-			f = .5 * (small / big)
-			mainCentroid = pixel.Lerp(mainCentroid, tris[i].centroid, f)
+			t := .5 * (small / big)
+			mainCentroid = pixel.Lerp(mainCentroid, tris[i].centroid, t)
 		} else {
 			big := tris[i].area
 			small := totalArea
-			f = .5 * (small / big)
-			mainCentroid = pixel.Lerp(tris[i].centroid, mainCentroid, f)
+			t := .5 * (small / big)
+			mainCentroid = pixel.Lerp(tris[i].centroid, mainCentroid, t)
 		}
-		fmt.Println(f)
 		totalArea = totalArea + tris[i].area
 	}
+	// draw the main centroid as a plus mark
+	drawPlus(imd, mainCentroid, 8, 4)
+}
 
-	imd.Push(mainCentroid)
-	imd.Circle(8, 0)
+func drawPlus(imd *imdraw.IMDraw, center pixel.Vec, size, thickness float64) {
+	imd.Push(center.Add(pixel.V(-size, 0)))
+	imd.Push(center.Add(pixel.V(size, 0)))
+	imd.Line(thickness)
+	imd.Push(center.Add(pixel.V(0, -size)))
+	imd.Push(center.Add(pixel.V(0, size)))
+	imd.Line(thickness)
 }

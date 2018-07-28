@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	_ "image/png"
+
 	"github.com/faiface/pixel/imdraw"
 
 	"github.com/faiface/pixel"
@@ -58,9 +60,9 @@ func NewCentroidTestCells(bounds pixel.Rect) Cells {
 		boundsMinY: int(bounds.Min.Y),
 		boundsMaxY: int(bounds.Max.Y),
 		cells: []Cell{
-			NewCell(127, 273),
-			NewCell(134, 208),
-			NewCell(191, 288),
+			NewCell(106, 272),
+			NewCell(134, 207),
+			NewCell(190, 287),
 			NewCell(198, 254),
 			NewCell(198, 153),
 		},
@@ -209,6 +211,15 @@ func run() {
 		panic(err)
 	}
 
+	// to display a reference image in the background
+	pic, err := loadPicture("300px-LloydsMethod1.png")
+	if err != nil {
+		panic(err)
+	}
+	sprite := pixel.NewSprite(pic, pic.Bounds())
+	mat := pixel.IM
+	mat = mat.Moved(win.Bounds().Center())
+
 	var (
 		frames = 0
 		second = time.Tick(time.Second)
@@ -236,7 +247,10 @@ func run() {
 			c.generateVoronoi()
 			c.update()
 			// c.draw(imd)
+
+			sprite.Draw(win, mat) // background reference
 			c.drawDebug(imd)
+
 			imd.Draw(win)
 			first = false
 		}
@@ -249,6 +263,7 @@ func run() {
 		if win.JustReleased(pixelgl.KeyLeftControl) {
 			win.Clear(background)
 			imd.Clear()
+			sprite.Draw(win, mat) // background reference
 			c.drawDebug(imd)
 			imd.Draw(win)
 		}
