@@ -181,8 +181,8 @@ func distance(x, y int) int {
 }
 
 func (c *Cells) update() {
-	for _, cell := range c.cells {
-		cell.update()
+	for i := 0; i < len(c.cells); i++ {
+		c.cells[i].update()
 	}
 }
 
@@ -236,21 +236,37 @@ func run() {
 
 	// main loop
 	for !win.Closed() {
+
+		// UPDATE
 		if win.JustPressed(pixelgl.KeySpace) || first {
 			// new voronoi!
 			seed := time.Now().UnixNano()
 			fmt.Printf("running %v\n", seed)
 			rand.Seed(seed)
-			win.Clear(background)
-			imd.Clear()
 			// c.randomize()
 			c.generateVoronoi()
 			c.update()
-			// c.draw(imd)
+		}
+		if win.JustPressed(pixelgl.KeyLeftControl) {
+		}
+		if win.JustReleased(pixelgl.KeyLeftControl) {
+		}
+		frames++
+		win.Update()
 
+		// DRAW
+		// framerate
+		select {
+		case <-second:
+			win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
+			frames = 0
+		default:
+		}
+		if win.JustPressed(pixelgl.KeySpace) || first {
+			win.Clear(background)
+			imd.Clear()
 			sprite.Draw(win, mat) // background reference
 			c.drawDebug(imd)
-
 			imd.Draw(win)
 			first = false
 		}
@@ -266,17 +282,6 @@ func run() {
 			sprite.Draw(win, mat) // background reference
 			c.drawDebug(imd)
 			imd.Draw(win)
-		}
-
-		win.Update()
-
-		// framerate
-		frames++
-		select {
-		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
-			frames = 0
-		default:
 		}
 	}
 }

@@ -40,7 +40,56 @@ func (c *Cell) update() {
 }
 
 func (c *Cell) computeCentroid() {
+	type triangle struct {
+		centroid pixel.Vec
+		area     float64
+	}
+	var tris []triangle
 
+	end := 2
+	a := c.points[0].v
+	for end < len(c.points) {
+		// centroid of the current triangle
+		b := c.points[end-1].v
+		c := c.points[end].v
+		x := (a.X + b.X + c.X) / 3
+		y := (a.Y + b.Y + c.Y) / 3
+
+		// area of the current triangle
+		// 1/2 * | x1y2 + x2y3 + x3y1 - x2y1 - x3y2 - x1y3 |
+		// 1/2 * | a.X*b.Y + b.X*c.Y + c.X*a.Y - b.X*a.Y - c.X*b.Y - a.X*c.Y |
+		area := .5 * math.Abs(a.X*b.Y+b.X*c.Y+c.X*a.Y-b.X*a.Y-c.X*b.Y-a.X*c.Y)
+
+		t := triangle{pixel.V(x, y), area}
+		tris = append(tris, t)
+		end++
+	}
+
+	// Start with main centroid and area of the first triangle. For for each
+	// additional triangle, interpolate between them by an amount determined by
+	// their relative areas.
+	mainCentroid := tris[0].centroid
+	totalArea := tris[0].area
+	for i := 1; i < len(tris); i++ {
+
+		// Dividing the smaller by the bigger area always gets a number between
+		// zero and one so it's useful for linear interpolation. This isn't the
+		// right number, but if interpolating from big to small then half of it
+		// seems to give the correct amount.
+		if totalArea >= tris[i].area {
+			big := totalArea
+			small := tris[i].area
+			t := .5 * (small / big)
+			mainCentroid = pixel.Lerp(mainCentroid, tris[i].centroid, t)
+		} else {
+			big := tris[i].area
+			small := totalArea
+			t := .5 * (small / big)
+			mainCentroid = pixel.Lerp(tris[i].centroid, mainCentroid, t)
+		}
+		totalArea = totalArea + tris[i].area
+	}
+	c.centroidV = mainCentroid
 }
 
 func (c *Cell) addPoint(v pixel.Vec) {
@@ -73,16 +122,14 @@ func (p pt) angle() float64 {
 	return p.seedV.Sub(p.v).Angle()
 }
 
-func (c *Cell) createOutline(imd *imdraw.IMDraw) {
-	c.orderPoints()
+func (c *Cell) drawOutline(imd *imdraw.IMDraw) {
 	for _, pt := range c.points {
 		imd.Push(pt.v)
 	}
 	imd.Polygon(2)
 }
 
-func (c *Cell) createOffsetOutline(imd *imdraw.IMDraw) {
-	c.orderPoints()
+func (c *Cell) drawOffsetOutline(imd *imdraw.IMDraw) {
 	for _, pt := range c.points {
 		nudgeV := c.seedV.Sub(pt.v).Unit().Scaled(2)
 		imd.Push(pt.v.Add(nudgeV))
@@ -90,7 +137,7 @@ func (c *Cell) createOffsetOutline(imd *imdraw.IMDraw) {
 	imd.Polygon(1)
 }
 
-func (c *Cell) createSpokes(imd *imdraw.IMDraw) {
+func (c *Cell) drawSpokes(imd *imdraw.IMDraw) {
 	for _, pt := range c.points {
 		imd.Push(c.seedV, pt.v)
 		imd.Line(1)
@@ -98,77 +145,17 @@ func (c *Cell) createSpokes(imd *imdraw.IMDraw) {
 }
 
 func (c *Cell) draw(imd *imdraw.IMDraw) {
-	c.createOutline(imd)
+	c.drawOutline(imd)
 	imd.Push(c.seedV)
 	imd.Circle(2, 0)
 }
 
 func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
-
+	c.drawOutline(imd)
+	c.drawSpokes(imd)
 	imd.Push(c.seedV)
 	imd.Circle(3, 0)
-
-	// figuring out centroid visually here first
-
-	type triangle struct {
-		centroid pixel.Vec
-		area     float64
-	}
-	var tris []triangle
-
-	end := 2
-	a := c.points[0].v
-	for end < len(c.points) {
-		// centroid
-		b := c.points[end-1].v
-		c := c.points[end].v
-		x := (a.X + b.X + c.X) / 3
-		y := (a.Y + b.Y + c.Y) / 3
-
-		// area
-		// 1/2 * | x1y2 + x2y3 + x3y1 - x2y1 - x3y2 - x1y3 |
-		// 1/2 * | a.X*b.Y + b.X*c.Y + c.X*a.Y - b.X*a.Y - c.X*b.Y - a.X*c.Y |
-		area := .5 * math.Abs(a.X*b.Y+b.X*c.Y+c.X*a.Y-b.X*a.Y-c.X*b.Y-a.X*c.Y)
-
-		t := triangle{pixel.V(x, y), area}
-		tris = append(tris, t)
-
-		imd.Push(t.centroid)
-		imd.Circle(5, 1)
-
-		imd.Push(a)
-		imd.Push(b)
-		imd.Push(c)
-		imd.Polygon(1)
-		end++
-	}
-
-	// Start with main centroid and area of the first triangle. For for each
-	// additional triangle, interpolate between them by an amount determined by
-	// their relative areas.
-	mainCentroid := tris[0].centroid
-	totalArea := tris[0].area
-	for i := 1; i < len(tris); i++ {
-
-		// Dividing the smaller by the bigger area always gets a number between
-		// zero and one so it's useful for linear interpolation. This isn't the
-		// right number, but if interpolating from big to small then half of it
-		// seems to give the correct amount.
-		if totalArea >= tris[i].area {
-			big := totalArea
-			small := tris[i].area
-			t := .5 * (small / big)
-			mainCentroid = pixel.Lerp(mainCentroid, tris[i].centroid, t)
-		} else {
-			big := tris[i].area
-			small := totalArea
-			t := .5 * (small / big)
-			mainCentroid = pixel.Lerp(tris[i].centroid, mainCentroid, t)
-		}
-		totalArea = totalArea + tris[i].area
-	}
-	// draw the main centroid as a plus mark
-	drawPlus(imd, mainCentroid, 8, 4)
+	drawPlus(imd, c.centroidV, 8, 4)
 }
 
 func drawPlus(imd *imdraw.IMDraw, center pixel.Vec, size, thickness float64) {
