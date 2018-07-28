@@ -21,6 +21,15 @@ const (
 	nSites      = 50
 )
 
+// DrawMode determines what should be drawn to the screen
+type DrawMode int
+
+// Possible DrawModes
+const (
+	Normal DrawMode = 0
+	Debug  DrawMode = 1
+)
+
 // Cells ...
 type Cells struct {
 	bounds     pixel.Rect // bounds to fill with cells
@@ -227,12 +236,15 @@ func run() {
 
 	// c := NewCells(nSites, win.Bounds())
 	c := NewCentroidTestCells(win.Bounds())
-	first := true
 	background := color.RGBA{220, 220, 220, 255}
 	foreground := colornames.Black
 	imd := imdraw.New(nil)
 	imd.Color = foreground
 	imd.EndShape = imdraw.NoEndShape
+
+	first := true         // switch to determine if it's the first loop.
+	displayMode := Normal // switch that determines what mode to draw.
+	dirty := false        // switch that determines if things need to be redrawn.
 
 	// main loop
 	for !win.Closed() {
@@ -246,10 +258,17 @@ func run() {
 			// c.randomize()
 			c.generateVoronoi()
 			c.update()
+			dirty = true
+			first = false
 		}
 		if win.JustPressed(pixelgl.KeyLeftControl) {
+			dirty = true
+			displayMode = Debug
+
 		}
 		if win.JustReleased(pixelgl.KeyLeftControl) {
+			dirty = true
+			displayMode = Normal
 		}
 		frames++
 		win.Update()
@@ -262,26 +281,18 @@ func run() {
 			frames = 0
 		default:
 		}
-		if win.JustPressed(pixelgl.KeySpace) || first {
+		if dirty {
 			win.Clear(background)
 			imd.Clear()
-			sprite.Draw(win, mat) // background reference
-			c.drawDebug(imd)
+			switch displayMode {
+			case Normal:
+				c.draw(imd)
+			case Debug:
+				sprite.Draw(win, mat) // background reference
+				c.drawDebug(imd)
+			}
 			imd.Draw(win)
-			first = false
-		}
-		if win.JustPressed(pixelgl.KeyLeftControl) {
-			win.Clear(background)
-			imd.Clear()
-			c.draw(imd)
-			imd.Draw(win)
-		}
-		if win.JustReleased(pixelgl.KeyLeftControl) {
-			win.Clear(background)
-			imd.Clear()
-			sprite.Draw(win, mat) // background reference
-			c.drawDebug(imd)
-			imd.Draw(win)
+			dirty = false
 		}
 	}
 }
