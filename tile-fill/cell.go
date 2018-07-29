@@ -11,19 +11,24 @@ import (
 
 // Cell ...
 type Cell struct {
-	seedV     pixel.Vec
-	centroidV pixel.Vec
-	points    points
-	seedX     int
-	seedY     int
+	seedV             pixel.Vec
+	centroidV         pixel.Vec
+	points            points
+	seedX             int
+	seedY             int
+	lastSeedV         pixel.Vec
+	lastRelaxDistance float64
 }
 
 // NewCell ...
 func NewCell(x, y int) Cell {
+	seedV := pixel.V(float64(x), float64(y))
 	return Cell{
-		seedV: pixel.V(float64(x), float64(y)),
-		seedX: x,
-		seedY: y,
+		seedV:             seedV,
+		seedX:             x,
+		seedY:             y,
+		lastSeedV:         seedV,
+		lastRelaxDistance: 99999999,
 	}
 }
 
@@ -37,6 +42,14 @@ func (c *Cell) reset(x, y int) {
 func (c *Cell) update() {
 	c.orderPoints()
 	c.computeCentroid()
+
+	c.lastRelaxDistance = c.centroidV.Sub(c.seedV).Len()
+	x := math.Round(c.centroidV.X)
+	y := math.Round(c.centroidV.Y)
+	c.lastSeedV = c.seedV
+	c.seedV = pixel.V(x, y)
+	c.seedX = int(x)
+	c.seedY = int(y)
 }
 
 func (c *Cell) computeCentroid() {
@@ -146,16 +159,19 @@ func (c *Cell) drawSpokes(imd *imdraw.IMDraw) {
 
 func (c *Cell) draw(imd *imdraw.IMDraw) {
 	c.drawOutline(imd)
-	imd.Push(c.seedV)
+	imd.Push(c.lastSeedV)
 	imd.Circle(2, 0)
 }
 
 func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
+	imd.Color = dark()
 	c.drawOutline(imd)
-	c.drawSpokes(imd)
-	imd.Push(c.seedV)
-	imd.Circle(3, 0)
+	// c.drawSpokes(imd)
 	drawPlus(imd, c.centroidV, 8, 4)
+
+	imd.Color = red()
+	imd.Push(c.lastSeedV)
+	imd.Circle(3, 0)
 }
 
 func drawPlus(imd *imdraw.IMDraw, center pixel.Vec, size, thickness float64) {

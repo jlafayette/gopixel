@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	imageWidth  = 300 //800
-	imageHeight = 300 //800
+	imageWidth  = 800
+	imageHeight = 800
 	nSites      = 50
 )
 
@@ -40,22 +40,22 @@ func run() {
 		panic(err)
 	}
 
-	// to display a reference image in the background
-	pic, err := loadPicture("300px-LloydsMethod1.png")
-	if err != nil {
-		panic(err)
-	}
-	sprite := pixel.NewSprite(pic, pic.Bounds())
-	mat := pixel.IM
-	mat = mat.Moved(win.Bounds().Center())
+	// // to display a reference image in the background
+	// pic, err := loadPicture("300px-LloydsMethod1.png")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// sprite := pixel.NewSprite(pic, pic.Bounds())
+	// mat := pixel.IM
+	// mat = mat.Moved(win.Bounds().Center())
 
 	var (
 		frames = 0
 		second = time.Tick(time.Second)
 	)
 
-	// c := NewCells(nSites, win.Bounds())
-	c := NewCentroidTestCells(win.Bounds())
+	c := NewCells(nSites, win.Bounds())
+	// c := NewCentroidTestCells(win.Bounds())
 	background := color.RGBA{220, 220, 220, 255}
 	foreground := colornames.Black
 	imd := imdraw.New(nil)
@@ -65,6 +65,7 @@ func run() {
 	first := true        // switch to determine if it's the first loop.
 	displayMode := Debug // switch that determines what mode to draw.
 	dirty := false       // switch that determines if things need to be redrawn.
+	relax := false       // determine if cells should relax.
 
 	// main loop
 	for !win.Closed() {
@@ -75,16 +76,27 @@ func run() {
 			seed := time.Now().UnixNano()
 			fmt.Printf("running %v\n", seed)
 			rand.Seed(seed)
+			c = NewCells(nSites, win.Bounds())
 			// c.randomize()
-			c.generateVoronoi()
+			// c.initialize() // if needed
 			c.update()
 			dirty = true
 			first = false
 		}
+		if win.JustPressed(pixelgl.KeyRight) {
+			relax = true
+		}
+		if relax {
+			// advance relaxation
+			c.update()
+			dirty = true
+			if c.relaxed() {
+				relax = false
+			}
+		}
 		if win.JustPressed(pixelgl.KeyLeftControl) {
 			dirty = true
 			displayMode = Normal
-
 		}
 		if win.JustReleased(pixelgl.KeyLeftControl) {
 			dirty = true
@@ -108,7 +120,7 @@ func run() {
 			case Normal:
 				c.draw(imd)
 			case Debug:
-				sprite.Draw(win, mat) // background reference
+				// sprite.Draw(win, mat) // background reference
 				c.drawDebug(imd)
 			}
 			imd.Draw(win)

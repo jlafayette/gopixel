@@ -64,7 +64,23 @@ func (c *Cells) randomize() {
 	}
 }
 
+func (c *Cells) relaxed() bool {
+	largestDistance := 0.0
+	for i := 0; i < len(c.cells); i++ {
+		if c.cells[i].lastRelaxDistance > largestDistance {
+			largestDistance = c.cells[i].lastRelaxDistance
+		}
+	}
+	if largestDistance <= 2.5 {
+		return true
+	}
+	return false
+}
+
 func (c *Cells) generateVoronoi() {
+	for i := 0; i < len(c.cells); i++ {
+		c.cells[i].points = nil
+	}
 	width := c.boundsMaxX
 	height := c.boundsMaxY
 	master := make([]int16, width*height)
@@ -156,7 +172,12 @@ func distance(x, y int) int {
 	return x*x + y*y
 }
 
+func (c *Cells) initialize() {
+	c.generateVoronoi()
+}
+
 func (c *Cells) update() {
+	c.generateVoronoi()
 	for i := 0; i < len(c.cells); i++ {
 		c.cells[i].update()
 	}
@@ -170,7 +191,7 @@ func (c *Cells) draw(imd *imdraw.IMDraw) {
 
 func (c *Cells) drawDebug(imd *imdraw.IMDraw) {
 	for i := 0; i < len(c.cells); i++ {
-		imd.Color = randomColor(10, 150)
+		// imd.Color = randomColor(10, 150)
 		c.cells[i].drawDebug(imd)
 	}
 }
