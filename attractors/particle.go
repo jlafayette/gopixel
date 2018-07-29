@@ -24,7 +24,8 @@ func NewParticle(pos, vel pixel.Vec) Particle {
 }
 
 func (p *Particle) update() {
-
+	p.pos = p.pos.Add(p.vel)
+	p.vel = p.vel.Add(p.acc)
 }
 
 func (p *Particle) draw(imd *imdraw.IMDraw) {

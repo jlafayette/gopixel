@@ -41,7 +41,8 @@ func run() {
 	imd.EndShape = imdraw.RoundEndShape
 
 	a1 := NewAttractor(pixel.V(screenWidth/2, screenHeight/2))
-	p1 := NewParticle(pixel.V(100, 200), pixel.V(0, 0))
+	p1 := NewParticle(pixel.V(100, 200), pixel.V(1, 1))
+	engine := NewEngine([]Attractor{a1}, []Particle{p1})
 
 	// main loop
 	for !win.Closed() {
@@ -49,8 +50,7 @@ func run() {
 		// UPDATE
 		frames++
 		win.Update()
-		a1.update()
-		p1.update()
+		engine.update()
 
 		// DRAW
 		select {
@@ -61,8 +61,7 @@ func run() {
 		}
 		win.Clear(background)
 		imd.Clear()
-		a1.draw(imd)
-		p1.draw(imd)
+		engine.draw(imd)
 		imd.Draw(win)
 	}
 }
