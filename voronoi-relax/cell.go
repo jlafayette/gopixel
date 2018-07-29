@@ -95,6 +95,9 @@ func (c *Cell) computeCentroid() {
 	// Start with main centroid and area of the first triangle. For for each
 	// additional triangle, interpolate between them by an amount determined by
 	// their relative areas.
+	if len(tris) < 1 {
+		return
+	}
 	mainCentroid := tris[0].centroid
 	totalArea := tris[0].area
 	for i := 1; i < len(tris); i++ {
