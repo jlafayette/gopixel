@@ -62,9 +62,9 @@ func run() {
 	imd.Color = foreground
 	imd.EndShape = imdraw.NoEndShape
 
-	first := true         // switch to determine if it's the first loop.
-	displayMode := Normal // switch that determines what mode to draw.
-	dirty := false        // switch that determines if things need to be redrawn.
+	first := true        // switch to determine if it's the first loop.
+	displayMode := Debug // switch that determines what mode to draw.
+	dirty := false       // switch that determines if things need to be redrawn.
 
 	// main loop
 	for !win.Closed() {
@@ -83,12 +83,12 @@ func run() {
 		}
 		if win.JustPressed(pixelgl.KeyLeftControl) {
 			dirty = true
-			displayMode = Debug
+			displayMode = Normal
 
 		}
 		if win.JustReleased(pixelgl.KeyLeftControl) {
 			dirty = true
-			displayMode = Normal
+			displayMode = Debug
 		}
 		frames++
 		win.Update()
