@@ -1,0 +1,35 @@
+ $ go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
+ $ go tool pprof cpu.prof
+ $ go test -run=XXX -bench=. -benchmem -count 10 | tee benchN.txt
+ $ benchstat {bench3,bench4}.txt
+
+c := NewCells(25, pixel.R(0, 0, 400, 400))
+c.generateVoronoi()
+$ go test -run=XXX -bench=. -benchmem -count 10
+$ go test -run=XXX -bench=. -benchtime=20s -benchmem
+
+ROUND 1
+BenchmarkCells_generateVoronoi-4              10         144054910 ns/op           36440 B/op        363 allocs/op
+BenchmarkCells_generateVoronoi-4             200         143454313 ns/op
+
+ROUND 2
+BenchmarkCells_generateVoronoi-4              10         143153320 ns/op         1315352 B/op            361 allocs/op
+BenchmarkCells_generateVoronoi-4             200         143035020 ns/op         1315747 B/op            362 allocs/op
+
+ROUND 3  (int8 instead of int)
+BenchmarkCells_generateVoronoi-4              10         153850950 ns/op          193732 B/op            366 allocs/op
+BenchmarkCells_generateVoronoi-4             200         153381219 ns/op          193517 B/op            363 allocs/op
+
+ROUND 4
+
+ROUND 5
+BenchmarkCells_generateVoronoi-4              20          76676270 ns/op          193328 B/op        362 allocs/op
+
+ROUND 6 (don't copy large structs (Cell) in loops, access by index instead)
+BenchmarkCells_generateVoronoi-4              50          25831776 ns/op          193111 B/op        359 allocs/op
+
+ROUND 7 (int16 instead of int8)
+BenchmarkCells_generateVoronoi-4              50          25411590 ns/op          357152 B/op        358 allocs/op
+
+ROUND 8
+BenchmarkCells_generateVoronoi-4              50          26391818 ns/op          339358 B/op        161 allocs/op
