@@ -21,7 +21,7 @@ func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Attractors",
 		Bounds: pixel.R(0, 0, screenWidth, screenHeight),
-		VSync:  true,
+		// VSync:  true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -39,10 +39,16 @@ func run() {
 	imd := imdraw.New(nil)
 	imd.Color = foreground
 	imd.EndShape = imdraw.RoundEndShape
+	imd.Intensity = .1
+	win.Clear(background)
 
 	a1 := NewAttractor(pixel.V(screenWidth/2, screenHeight/2))
-	p1 := NewParticle(pixel.V(100, 200), pixel.V(1, 1))
-	engine := NewEngine([]Attractor{a1}, []Particle{p1})
+	var particles []Particle
+	for i := 0; i < 50; i++ {
+		p := NewParticle(pixel.V(screenWidth/2-(150-float64(i)), screenHeight/2), pixel.V(0, 0+(float64(i)*.04)))
+		particles = append(particles, p)
+	}
+	engine := NewEngine([]Attractor{a1}, particles)
 
 	// main loop
 	for !win.Closed() {
@@ -59,7 +65,7 @@ func run() {
 			frames = 0
 		default:
 		}
-		win.Clear(background)
+		// win.Clear(background)
 		imd.Clear()
 		engine.draw(imd)
 		imd.Draw(win)

@@ -15,7 +15,7 @@ type Attractor struct {
 func NewAttractor(pos pixel.Vec) Attractor {
 	return Attractor{
 		pos:  pos,
-		mass: 10,
+		mass: 50,
 	}
 }
 

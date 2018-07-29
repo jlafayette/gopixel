@@ -23,6 +23,13 @@ func NewParticle(pos, vel pixel.Vec) Particle {
 	}
 }
 
+// NewOrbiter ...
+func NewOrbiter(a Attractor) Particle {
+	pos := pixel.V(300, 400)
+	vel := pixel.V(0, .1)
+	return NewParticle(pos, vel)
+}
+
 func (p *Particle) update() {
 	p.pos = p.pos.Add(p.vel)
 	p.vel = p.vel.Add(p.acc)
@@ -30,5 +37,5 @@ func (p *Particle) update() {
 
 func (p *Particle) draw(imd *imdraw.IMDraw) {
 	imd.Push(p.pos)
-	imd.Circle(3, 0)
+	imd.Circle(1, 0)
 }
