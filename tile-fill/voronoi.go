@@ -16,7 +16,7 @@ import (
 
 func generateVoronoi(sx, sy []int) pixel.Picture {
 	// generate a random color for each site
-	sc := make([]color.NRGBA, nSites)
+	sc := make([]color.NRGBA, initNumSites)
 	for i := range sx {
 		sc[i] = color.NRGBA{
 			uint8(rand.Intn(156) + 100),
@@ -30,7 +30,7 @@ func generateVoronoi(sx, sy []int) pixel.Picture {
 		for x := 0; x < imageWidth; x++ {
 			dMin := dot(imageWidth, imageHeight)
 			var sMin int
-			for s := 0; s < nSites; s++ {
+			for s := 0; s < initNumSites; s++ {
 				if d := dot(sx[s]-x, sy[s]-y); d < dMin {
 					sMin = s
 					dMin = d
@@ -41,7 +41,7 @@ func generateVoronoi(sx, sy []int) pixel.Picture {
 	}
 	// mark each cell center with a black box
 	black := image.NewUniform(color.Black)
-	for s := 0; s < nSites; s++ {
+	for s := 0; s < initNumSites; s++ {
 		draw.Draw(img, image.Rect(sx[s]-2, sy[s]-2, sx[s]+2, sy[s]+2),
 			black, image.ZP, draw.Src)
 	}

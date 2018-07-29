@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	imageWidth  = 800
-	imageHeight = 800
-	nSites      = 50
+	imageWidth   = 800
+	imageHeight  = 800
+	initNumSites = 5
 )
 
 // DrawMode determines what should be drawn to the screen
@@ -54,7 +54,7 @@ func run() {
 		second = time.Tick(time.Second)
 	)
 
-	c := NewCells(nSites, win.Bounds())
+	c := NewCells(initNumSites, win.Bounds())
 	// c := NewCentroidTestCells(win.Bounds())
 	background := color.RGBA{220, 220, 220, 255}
 	foreground := colornames.Black
@@ -66,19 +66,29 @@ func run() {
 	displayMode := Debug // switch that determines what mode to draw.
 	dirty := false       // switch that determines if things need to be redrawn.
 	relax := false       // determine if cells should relax.
+	nSites := initNumSites
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
-		if win.JustPressed(pixelgl.KeySpace) || first {
+		if win.JustPressed(pixelgl.KeyUp) {
+			nSites = nSites + 1
+			first = true
+		}
+		if win.JustPressed(pixelgl.KeyDown) {
+			if nSites > 1 {
+				nSites = nSites - 1
+				first = true
+			}
+		}
+		if win.JustPressed(pixelgl.KeySpace) || win.JustPressed(pixelgl.KeyRight) || first {
 			// new voronoi!
 			seed := time.Now().UnixNano()
 			fmt.Printf("running %v\n", seed)
 			rand.Seed(seed)
 			c = NewCells(nSites, win.Bounds())
 			// c.randomize()
-			// c.initialize() // if needed
 			c.update()
 			dirty = true
 			first = false
@@ -87,7 +97,6 @@ func run() {
 			relax = true
 		}
 		if relax {
-			// advance relaxation
 			c.update()
 			dirty = true
 			if c.relaxed() {
@@ -109,7 +118,7 @@ func run() {
 		// framerate
 		select {
 		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
+			win.SetTitle(fmt.Sprintf("%s | FPS: %d | Count: %d", cfg.Title, frames, nSites))
 			frames = 0
 		default:
 		}

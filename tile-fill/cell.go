@@ -9,6 +9,11 @@ import (
 	"github.com/faiface/pixel"
 )
 
+const (
+	centroidOffsetX = -5
+	centroidOffsetY = -5
+)
+
 // Cell ...
 type Cell struct {
 	seedV             pixel.Vec
@@ -43,9 +48,12 @@ func (c *Cell) update() {
 	c.orderPoints()
 	c.computeCentroid()
 
-	c.lastRelaxDistance = c.centroidV.Sub(c.seedV).Len()
-	x := math.Round(c.centroidV.X)
-	y := math.Round(c.centroidV.Y)
+	offsetV := pixel.V(centroidOffsetX, centroidOffsetY)
+	offsetCentroid := c.centroidV.Add(offsetV)
+
+	c.lastRelaxDistance = offsetCentroid.Sub(c.seedV).Len()
+	x := math.Round(offsetCentroid.X)
+	y := math.Round(offsetCentroid.Y)
 	c.lastSeedV = c.seedV
 	c.seedV = pixel.V(x, y)
 	c.seedX = int(x)
@@ -59,12 +67,18 @@ func (c *Cell) computeCentroid() {
 	}
 	var tris []triangle
 
-	end := 2
-	a := c.points[0].v
+	end := 0
+	a := c.seedV
 	for end < len(c.points) {
 		// centroid of the current triangle
-		b := c.points[end-1].v
+		var b pixel.Vec
+		if end == 0 {
+			b = c.points[len(c.points)-1].v
+		} else {
+			b = c.points[end-1].v
+		}
 		c := c.points[end].v
+
 		x := (a.X + b.X + c.X) / 3
 		y := (a.Y + b.Y + c.Y) / 3
 
@@ -170,7 +184,8 @@ func (c *Cell) drawDebug(imd *imdraw.IMDraw) {
 	drawPlus(imd, c.centroidV, 8, 4)
 
 	imd.Color = red()
-	imd.Push(c.lastSeedV)
+	reverseOffsetV := pixel.V(-centroidOffsetX, -centroidOffsetY)
+	imd.Push(c.lastSeedV.Add(reverseOffsetV))
 	imd.Circle(3, 0)
 }
 

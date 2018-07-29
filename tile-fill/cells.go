@@ -71,7 +71,7 @@ func (c *Cells) relaxed() bool {
 			largestDistance = c.cells[i].lastRelaxDistance
 		}
 	}
-	if largestDistance <= 2.5 {
+	if largestDistance <= 1.3 {
 		return true
 	}
 	return false
@@ -170,10 +170,6 @@ func findClosestSeed(c *Cells, x, y int) (int16, pixel.Vec) {
 // uses dot to efficently calcuate distance between two points.
 func distance(x, y int) int {
 	return x*x + y*y
-}
-
-func (c *Cells) initialize() {
-	c.generateVoronoi()
 }
 
 func (c *Cells) update() {
