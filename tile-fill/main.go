@@ -40,33 +40,23 @@ func run() {
 		panic(err)
 	}
 
-	// // to display a reference image in the background
-	// pic, err := loadPicture("300px-LloydsMethod1.png")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// sprite := pixel.NewSprite(pic, pic.Bounds())
-	// mat := pixel.IM
-	// mat = mat.Moved(win.Bounds().Center())
-
 	var (
 		frames = 0
 		second = time.Tick(time.Second)
 	)
 
 	c := NewCells(initNumSites, win.Bounds())
-	// c := NewCentroidTestCells(win.Bounds())
 	background := color.RGBA{220, 220, 220, 255}
 	foreground := colornames.Black
 	imd := imdraw.New(nil)
 	imd.Color = foreground
 	imd.EndShape = imdraw.NoEndShape
 
-	first := true        // switch to determine if it's the first loop.
-	displayMode := Debug // switch that determines what mode to draw.
-	dirty := false       // switch that determines if things need to be redrawn.
-	relax := false       // determine if cells should relax.
-	nSites := initNumSites
+	first := true          // switch to determine if it's the first loop.
+	displayMode := Debug   // switch that determines what mode to draw.
+	dirty := false         // switch that determines if things need to be redrawn.
+	relax := false         // determine if cells should relax.
+	nSites := initNumSites // track number of sites
 
 	// main loop
 	for !win.Closed() {
@@ -88,7 +78,6 @@ func run() {
 			fmt.Printf("running %v\n", seed)
 			rand.Seed(seed)
 			c = NewCells(nSites, win.Bounds())
-			// c.randomize()
 			c.update()
 			dirty = true
 			first = false
@@ -115,7 +104,6 @@ func run() {
 		win.Update()
 
 		// DRAW
-		// framerate
 		select {
 		case <-second:
 			win.SetTitle(fmt.Sprintf("%s | FPS: %d | Count: %d", cfg.Title, frames, nSites))
@@ -129,7 +117,6 @@ func run() {
 			case Normal:
 				c.draw(imd)
 			case Debug:
-				// sprite.Draw(win, mat) // background reference
 				c.drawDebug(imd)
 			}
 			imd.Draw(win)
