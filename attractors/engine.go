@@ -9,7 +9,7 @@ import (
 )
 
 // G is the gravitational constant
-const G float64 = 6.67408
+const G float64 = 1
 
 // Engine will keep track of all physics objects and calcuate forces
 type Engine struct {
@@ -29,15 +29,20 @@ func (e *Engine) update() {
 	for i := 0; i < len(e.particles); i++ {
 		for j := 0; j < len(e.attractors); j++ {
 			// Calculate force direction vector
-			dir := e.particles[i].pos.To(e.attractors[j].pos)
+			dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.attractors[j].pos)
 
-			// Get distance squared
-			distanceSq := math.Pow(dir.Len(), 2)
+			// Get distance squared (minimum distance is radius of attractor)
+			distanceSq := math.Pow(math.Max(dir.Len(), e.attractors[j].radius), 2)
 
 			// Calcuate magnitude:
 			//   F = G * (m1 * m2)/d2
 			//   F = M * A  ->  A = F / M
 			magnitude := G * ((e.particles[i].mass * e.attractors[j].mass) / distanceSq)
+
+			// Alternat formula
+			// F = - G*M*m*r^(-2)
+			// magnitude := G * e.particles[i].mass * e.attractors[j].mass * math.Pow(dir.Len(), -2)
+
 			acceleration := magnitude / e.particles[i].mass
 
 			e.particles[i].acc = pixel.Unit(dir.Angle()).Scaled(acceleration)

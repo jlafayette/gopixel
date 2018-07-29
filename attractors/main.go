@@ -43,11 +43,16 @@ func run() {
 	win.Clear(background)
 
 	a1 := NewAttractor(pixel.V(screenWidth/2, screenHeight/2))
-	var particles []Particle
-	for i := 0; i < 50; i++ {
-		p := NewParticle(pixel.V(screenWidth/2-(150-float64(i)), screenHeight/2), pixel.V(0, 0+(float64(i)*.04)))
-		particles = append(particles, p)
+	// var particles []Particle
+	particles := []Particle{
+		NewOrbiter(pixel.V(300, 400), a1),
+		NewOrbiter(pixel.V(500, 400), a1),
 	}
+	// for i := 0; i < 1; i++ {
+	// 	p := NewOrbiter(a1)
+	// 	// p := NewParticle(pixel.V(screenWidth/2-(150-float64(i)), screenHeight/2), pixel.V(0, 0+(float64(i)*.04)))
+	// 	particles = append(particles, p)
+	// }
 	engine := NewEngine([]Attractor{a1}, particles)
 
 	// main loop

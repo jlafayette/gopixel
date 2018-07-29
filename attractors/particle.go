@@ -24,9 +24,15 @@ func NewParticle(pos, vel pixel.Vec) Particle {
 }
 
 // NewOrbiter ...
-func NewOrbiter(a Attractor) Particle {
-	pos := pixel.V(300, 400)
-	vel := pixel.V(0, .1)
+func NewOrbiter(pos pixel.Vec, a Attractor) Particle {
+	// pos := pixel.V(300, 400)
+	toAttractor := pos.To(a.pos)
+	angle := toAttractor.Normal().Angle()
+
+	// distanceSq := math.Pow(math.Max(toAttractor.Len(), a.radius), 2)
+	// magnitude := G * ((1 * a.mass) / distanceSq) * 120
+
+	vel := pixel.Unit(angle).Scaled(.7)
 	return NewParticle(pos, vel)
 }
 
