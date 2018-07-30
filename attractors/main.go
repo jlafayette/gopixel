@@ -42,15 +42,17 @@ func run() {
 	imd.EndShape = imdraw.RoundEndShape
 	win.Clear(background)
 
-	a1 := NewAttractor(pixel.V(screenWidth/2, screenHeight/2))
 	var particles []Particle
+	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 5000)
+	a1.color = colornames.White
+	particles = append(particles, a1)
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
 	for i := 0; i < 5; i++ {
 		p := NewOrbiter(a1)
 		particles = append(particles, p)
 	}
-	engine := NewEngine([]Attractor{a1}, particles)
+	engine := NewEngine(particles)
 
 	// main loop
 	for !win.Closed() {
