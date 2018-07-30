@@ -9,7 +9,7 @@ import (
 )
 
 // G is the gravitational constant
-const G float64 = 1
+const G float64 = 6.674
 
 // Engine will keep track of all physics objects and calcuate forces
 type Engine struct {

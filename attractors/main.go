@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"math/rand"
 	"time"
 
 	"github.com/faiface/pixel/imdraw"
@@ -13,15 +14,15 @@ import (
 )
 
 const (
-	screenWidth  = 800
-	screenHeight = 800
+	screenWidth  = 1200
+	screenHeight = 1000
 )
 
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Attractors",
 		Bounds: pixel.R(0, 0, screenWidth, screenHeight),
-		// VSync:  true,
+		VSync:  true,
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -43,16 +44,13 @@ func run() {
 	win.Clear(background)
 
 	a1 := NewAttractor(pixel.V(screenWidth/2, screenHeight/2))
-	// var particles []Particle
-	particles := []Particle{
-		NewOrbiter(pixel.V(300, 400), a1),
-		NewOrbiter(pixel.V(500, 400), a1),
+	var particles []Particle
+	seed := time.Now().UnixNano()
+	rand.Seed(seed)
+	for i := 0; i < 100; i++ {
+		p := NewOrbiter(a1)
+		particles = append(particles, p)
 	}
-	// for i := 0; i < 1; i++ {
-	// 	p := NewOrbiter(a1)
-	// 	// p := NewParticle(pixel.V(screenWidth/2-(150-float64(i)), screenHeight/2), pixel.V(0, 0+(float64(i)*.04)))
-	// 	particles = append(particles, p)
-	// }
 	engine := NewEngine([]Attractor{a1}, particles)
 
 	// main loop

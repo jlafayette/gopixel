@@ -1,6 +1,9 @@
 package main
 
 import (
+	"math"
+	"math/rand"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 )
@@ -24,15 +27,31 @@ func NewParticle(pos, vel pixel.Vec) Particle {
 }
 
 // NewOrbiter ...
-func NewOrbiter(pos pixel.Vec, a Attractor) Particle {
-	// pos := pixel.V(300, 400)
+func NewOrbiter(a Attractor) Particle {
+
+	// randomized position
+	edgeOffset := 100.0
+	xMin := edgeOffset
+	yMin := edgeOffset
+	xMax := screenWidth - edgeOffset
+	yMax := screenHeight - edgeOffset
+	x := xMin + rand.Float64()*(xMax-xMin)
+	y := yMin + rand.Float64()*(yMax-yMin)
+	pos := pixel.V(x, y)
+
 	toAttractor := pos.To(a.pos)
 	angle := toAttractor.Normal().Angle()
 
-	// distanceSq := math.Pow(math.Max(toAttractor.Len(), a.radius), 2)
-	// magnitude := G * ((1 * a.mass) / distanceSq) * 120
+	// equation for circular orbit.
+	magnitude := math.Sqrt((G * (1 + a.mass)) / toAttractor.Len())
 
-	vel := pixel.Unit(angle).Scaled(.7)
+	// random velocity offset
+	min := .5
+	max := 1.07
+	r := min + rand.Float64()*(max-min)
+	magnitude = magnitude * r
+
+	vel := pixel.Unit(angle).Scaled(magnitude)
 	return NewParticle(pos, vel)
 }
 
