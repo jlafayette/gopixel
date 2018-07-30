@@ -27,12 +27,13 @@ func NewEngine(attractors []Attractor, particles []Particle) Engine {
 
 func (e *Engine) update() {
 	for i := 0; i < len(e.particles); i++ {
+		totalAcceleration := pixel.V(0, 0)
 		for j := 0; j < len(e.attractors); j++ {
 			// Calculate force direction vector
 			dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.attractors[j].pos)
 
 			// Get distance squared (minimum distance is radius of attractor)
-			distanceSq := math.Pow(math.Max(dir.Len(), e.attractors[j].radius), 2)
+			distanceSq := math.Pow(math.Max(dir.Len(), e.attractors[j].radius*2), 2)
 
 			// Calcuate magnitude:
 			//   F = G * (m1 * m2)/d2
@@ -45,8 +46,20 @@ func (e *Engine) update() {
 
 			acceleration := magnitude / e.particles[i].mass
 
-			e.particles[i].acc = pixel.Unit(dir.Angle()).Scaled(acceleration)
+			// e.particles[i].acc = pixel.Unit(dir.Angle()).Scaled(acceleration)
+			totalAcceleration = totalAcceleration.Add(pixel.Unit(dir.Angle()).Scaled(acceleration))
 		}
+		for k := 0; k < len(e.particles); k++ {
+			if i != k {
+				dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.particles[k].pos)
+				distance := math.Max(dir.Len(), e.particles[i].radius*2+e.particles[k].radius*2)
+				distanceSq := math.Pow(distance, 2)
+				magnitude := G * ((e.particles[i].mass * e.particles[k].mass) / distanceSq)
+				acceleration := magnitude / e.particles[i].mass
+				totalAcceleration = totalAcceleration.Add(pixel.Unit(dir.Angle()).Scaled(acceleration))
+			}
+		}
+		e.particles[i].acc = totalAcceleration
 	}
 
 	for i := 0; i < len(e.attractors); i++ {

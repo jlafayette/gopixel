@@ -10,19 +10,21 @@ import (
 
 // Particle is a dynamic point that is being simulated and responds to forces.
 type Particle struct {
-	pos  pixel.Vec
-	acc  pixel.Vec
-	vel  pixel.Vec
-	mass float64
+	pos    pixel.Vec
+	acc    pixel.Vec
+	vel    pixel.Vec
+	mass   float64
+	radius float64
 }
 
 // NewParticle instantiates a new particle
 func NewParticle(pos, vel pixel.Vec) Particle {
 	return Particle{
-		pos:  pos,
-		acc:  pixel.V(0, 0),
-		vel:  vel,
-		mass: 1,
+		pos:    pos,
+		acc:    pixel.V(0, 0),
+		vel:    vel,
+		mass:   .1,
+		radius: 1,
 	}
 }
 
@@ -46,8 +48,10 @@ func NewOrbiter(a Attractor) Particle {
 	magnitude := math.Sqrt((G * (1 + a.mass)) / toAttractor.Len())
 
 	// random velocity offset
-	min := .5
-	max := 1.07
+	// min := .5
+	// max := 1.07
+	min := .99
+	max := 1.01
 	r := min + rand.Float64()*(max-min)
 	magnitude = magnitude * r
 
@@ -62,5 +66,5 @@ func (p *Particle) update() {
 
 func (p *Particle) draw(imd *imdraw.IMDraw) {
 	imd.Push(p.pos)
-	imd.Circle(1, 0)
+	imd.Circle(p.radius, 0)
 }
