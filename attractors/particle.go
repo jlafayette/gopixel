@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"math"
 	"math/rand"
 
@@ -15,17 +16,20 @@ type Particle struct {
 	vel    pixel.Vec
 	mass   float64
 	radius float64
+	color  color.RGBA
 }
 
 // NewParticle instantiates a new particle
 func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
 	r := radiusFromMass(mass)
+	c := randomColor()
 	return Particle{
 		pos:    pos,
 		acc:    pixel.V(0, 0),
 		vel:    vel,
 		mass:   mass,
 		radius: r,
+		color:  c,
 	}
 }
 
@@ -66,6 +70,7 @@ func (p *Particle) update() {
 }
 
 func (p *Particle) draw(imd *imdraw.IMDraw) {
+	imd.Color = p.color
 	imd.Push(p.pos)
 	imd.Circle(p.radius, 0)
 }
@@ -74,4 +79,14 @@ func radiusFromMass(mass float64) float64 {
 	// A/PI = r2
 	r := math.Sqrt(mass / math.Pi)
 	return math.Max(r, 1)
+}
+
+// randomColor generates a random color
+func randomColor() color.RGBA {
+	return color.RGBA{
+		uint8(rand.Intn(256)),
+		uint8(rand.Intn(256)),
+		uint8(rand.Intn(256)),
+		255,
+	}
 }

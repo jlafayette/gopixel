@@ -35,8 +35,8 @@ func run() {
 		second = time.Tick(time.Second)
 	)
 
-	background := color.RGBA{220, 220, 220, 255}
-	foreground := colornames.Black
+	background := colornames.Black
+	foreground := color.RGBA{220, 220, 220, 255}
 	imd := imdraw.New(nil)
 	imd.Color = foreground
 	imd.EndShape = imdraw.RoundEndShape
@@ -46,7 +46,7 @@ func run() {
 	var particles []Particle
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 5; i++ {
 		p := NewOrbiter(a1)
 		particles = append(particles, p)
 	}
