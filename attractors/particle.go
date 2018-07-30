@@ -18,13 +18,14 @@ type Particle struct {
 }
 
 // NewParticle instantiates a new particle
-func NewParticle(pos, vel pixel.Vec) Particle {
+func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
+	r := radiusFromMass(mass)
 	return Particle{
 		pos:    pos,
 		acc:    pixel.V(0, 0),
 		vel:    vel,
-		mass:   .1,
-		radius: 1,
+		mass:   mass,
+		radius: r,
 	}
 }
 
@@ -56,7 +57,7 @@ func NewOrbiter(a Attractor) Particle {
 	magnitude = magnitude * r
 
 	vel := pixel.Unit(angle).Scaled(magnitude)
-	return NewParticle(pos, vel)
+	return NewParticle(pos, vel, .1)
 }
 
 func (p *Particle) update() {
@@ -67,4 +68,10 @@ func (p *Particle) update() {
 func (p *Particle) draw(imd *imdraw.IMDraw) {
 	imd.Push(p.pos)
 	imd.Circle(p.radius, 0)
+}
+
+func radiusFromMass(mass float64) float64 {
+	// A/PI = r2
+	r := math.Sqrt(mass / math.Pi)
+	return math.Max(r, 1)
 }
