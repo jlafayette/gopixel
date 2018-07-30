@@ -11,13 +11,15 @@ import (
 
 // Particle is a dynamic point that is being simulated and responds to forces.
 type Particle struct {
-	pos     pixel.Vec
-	prevPos pixel.Vec
-	acc     pixel.Vec
-	vel     pixel.Vec
-	mass    float64
-	radius  float64
-	color   color.RGBA
+	pos      pixel.Vec
+	prevPos  pixel.Vec
+	acc      pixel.Vec
+	vel      pixel.Vec
+	mass     float64
+	radius   float64
+	moveable bool
+	color    color.RGBA
+	visible  bool
 }
 
 // NewParticle instantiates a new particle
@@ -25,28 +27,21 @@ func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
 	r := radiusFromMass(mass)
 	c := randomColor()
 	return Particle{
-		pos:     pos,
-		prevPos: pos,
-		acc:     pixel.V(0, 0),
-		vel:     vel,
-		mass:    mass,
-		radius:  r,
-		color:   c,
+		pos:      pos,
+		prevPos:  pos,
+		acc:      pixel.V(0, 0),
+		vel:      vel,
+		mass:     mass,
+		radius:   r,
+		moveable: true,
+		color:    c,
+		visible:  true,
 	}
 }
 
 // NewOrbiter ...
-func NewOrbiter(a Particle) Particle {
-
-	// randomized position
-	edgeOffset := 200.0
-	xMin := edgeOffset
-	yMin := edgeOffset
-	xMax := screenWidth - edgeOffset
-	yMax := screenHeight - edgeOffset
-	x := xMin + rand.Float64()*(xMax-xMin)
-	y := yMin + rand.Float64()*(yMax-yMin)
-	pos := pixel.V(x, y)
+func NewOrbiter(a Particle, mass float64, bounds pixel.Rect, minOffset, maxOffset float64) Particle {
+	pos := randomPos(bounds)
 
 	toAttractor := pos.To(a.pos)
 	angle := toAttractor.Normal().Angle()
@@ -55,33 +50,33 @@ func NewOrbiter(a Particle) Particle {
 	magnitude := math.Sqrt((G * (1 + a.mass)) / toAttractor.Len())
 
 	// random velocity offset
-	// min := .5
-	// max := 1.07
-	min := .5
-	max := 1.05
-	r := min + rand.Float64()*(max-min)
+	r := minOffset + rand.Float64()*(maxOffset-minOffset)
 	magnitude = magnitude * r
 
-	vel := pixel.Unit(angle).Scaled(magnitude)
-	return NewParticle(pos, vel, .1)
+	vel := a.vel.Add(pixel.Unit(angle).Scaled(magnitude))
+	return NewParticle(pos, vel, mass)
 }
 
 func (p *Particle) update() {
 	p.prevPos = p.pos
-	p.pos = p.pos.Add(p.vel)
-	p.vel = p.vel.Add(p.acc)
+	if p.moveable {
+		p.pos = p.pos.Add(p.vel)
+		p.vel = p.vel.Add(p.acc)
+	}
 }
 
 func (p *Particle) draw(imd *imdraw.IMDraw) {
-	imd.Color = p.color
-	imd.Push(p.prevPos)
-	imd.Push(p.pos)
-	imd.Line(p.radius)
+	if p.visible {
+		imd.Color = p.color
+		imd.Push(p.prevPos)
+		imd.Push(p.pos)
+		imd.Line(p.radius)
+	}
 }
 
 func radiusFromMass(mass float64) float64 {
 	// A/PI = r2
-	r := math.Sqrt(mass / math.Pi)
+	r := (math.Cbrt(mass/math.Pi) + math.Sqrt(mass/math.Pi)) / 2
 	return math.Max(r, 1)
 }
 
@@ -93,4 +88,44 @@ func randomColor() color.RGBA {
 		uint8(rand.Intn(256)),
 		255,
 	}
+}
+
+// similar colors
+func similarRandomColor(i int) color.RGBA {
+	switch i {
+	case 0:
+		return color.RGBA{
+			uint8(rand.Intn(156) + 100),
+			uint8(10),
+			uint8(rand.Intn(256)),
+			255,
+		}
+	case 1:
+		return color.RGBA{
+			uint8(10),
+			uint8(rand.Intn(156) + 100),
+			uint8(rand.Intn(175)),
+			255,
+		}
+	case 2:
+		return color.RGBA{
+			uint8(rand.Intn(256)),
+			uint8(rand.Intn(100)),
+			uint8(rand.Intn(156) + 100),
+			255,
+		}
+	}
+	return randomColor()
+}
+
+func randomPos(bounds pixel.Rect) pixel.Vec {
+	x := bounds.Min.X + rand.Float64()*(bounds.Max.X-bounds.Min.X)
+	y := bounds.Min.Y + rand.Float64()*(bounds.Max.Y-bounds.Min.Y)
+	return pixel.V(x, y)
+}
+
+func randomVel(max float64) pixel.Vec {
+	x := -max + rand.Float64()*(max-(-max))
+	y := -max + rand.Float64()*(max-(-max))
+	return pixel.V(x, y)
 }

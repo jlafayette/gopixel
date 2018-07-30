@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"math/rand"
 	"time"
 
 	"github.com/faiface/pixel/imdraw"
@@ -35,32 +34,34 @@ func run() {
 		second = time.Tick(time.Second)
 	)
 
-	background := colornames.Black
-	foreground := color.RGBA{220, 220, 220, 255}
 	imd := imdraw.New(nil)
-	imd.Color = foreground
+	imd.Color = color.RGBA{220, 220, 220, 255}
 	imd.EndShape = imdraw.RoundEndShape
+	background := colornames.Black
 	win.Clear(background)
 
-	var particles []Particle
-	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 5000)
-	a1.color = colornames.White
-	particles = append(particles, a1)
-	seed := time.Now().UnixNano()
-	rand.Seed(seed)
-	for i := 0; i < 5; i++ {
-		p := NewOrbiter(a1)
-		particles = append(particles, p)
-	}
-	engine := NewEngine(particles)
+	engine := NewEngine(basic())
+	new := false
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
-		win.Update()
+		if win.JustPressed(pixelgl.Key1) {
+			engine = NewEngine(basic())
+			new = true
+		}
+		if win.JustPressed(pixelgl.Key2) {
+			engine = NewEngine(gasGiant())
+			new = true
+		}
+		if win.JustPressed(pixelgl.Key3) {
+			engine = NewEngine(random())
+			new = true
+		}
 		engine.update()
+		win.Update()
 
 		// DRAW
 		select {
@@ -69,7 +70,10 @@ func run() {
 			frames = 0
 		default:
 		}
-		// win.Clear(background)
+		if new {
+			win.Clear(background)
+			new = false
+		}
 		imd.Clear()
 		engine.draw(imd)
 		imd.Draw(win)

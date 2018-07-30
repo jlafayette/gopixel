@@ -32,7 +32,7 @@ func (e *Engine) update() {
 				dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.particles[j].pos)
 
 				// Get distance squared (minimum distance is radius of attractor)
-				distanceSq := math.Pow(math.Max(dir.Len(), e.particles[j].radius*1.5), 2)
+				distanceSq := math.Pow(math.Max(dir.Len(), e.particles[j].radius*3), 2)
 
 				// Calcuate magnitude:
 				//   F = G * (m1 * m2)/d2
