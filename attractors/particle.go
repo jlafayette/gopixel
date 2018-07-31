@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"math/rand"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -39,8 +38,9 @@ func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
 }
 
 // NewOrbiter ...
-func NewOrbiter(a Particle, mass float64, bounds pixel.Rect, minOffset, maxOffset float64) Particle {
-	pos := randomPos(bounds)
+func NewOrbiter(a Particle, mass, maxDistance, minVelOffset, maxVelOffset float64) Particle {
+
+	pos := a.randomOrbitPos(maxDistance)
 
 	toAttractor := pos.To(a.pos)
 	angle := toAttractor.Normal().Angle()
@@ -49,7 +49,7 @@ func NewOrbiter(a Particle, mass float64, bounds pixel.Rect, minOffset, maxOffse
 	magnitude := math.Sqrt((G * (1 + a.mass)) / toAttractor.Len())
 
 	// random velocity offset
-	r := minOffset + rand.Float64()*(maxOffset-minOffset)
+	r := randFloat(minVelOffset, maxVelOffset)
 	magnitude = magnitude * r
 
 	vel := a.vel.Add(pixel.Unit(angle).Scaled(magnitude))
@@ -79,6 +79,13 @@ func (p *Particle) drawPos(imd *imdraw.IMDraw) {
 		imd.Push(p.pos)
 		imd.Circle(p.radius, 0)
 	}
+}
+
+func (p *Particle) randomOrbitPos(maxDistance float64) pixel.Vec {
+	v := pixel.Unit(randFloat(0, math.Pi*2))
+	distance := randFloat(p.radius+2, maxDistance)
+	v = v.Scaled(distance)
+	return p.pos.Add(v)
 }
 
 func radiusFromMass(mass float64) float64 {

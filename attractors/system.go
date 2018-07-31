@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 	"time"
 
@@ -17,7 +18,7 @@ func basic() []Particle {
 	rand.Seed(seed)
 	for i := 0; i < rand.Intn(9)+1; i++ {
 		m := .01 + rand.Float64()*(1.5-.01)
-		p := NewOrbiter(a1, m, pixel.R(200, 200, screenWidth-200, screenHeight-200), .5, 1.05)
+		p := NewOrbiter(a1, m, screenSafeDistance(150), .5, 1.05)
 		particles = append(particles, p)
 	}
 	return particles
@@ -33,18 +34,18 @@ func gasGiant() []Particle {
 	a1.color = pixel.RGB(1, 1, 1)
 	particles = append(particles, a1)
 
-	g1 := NewOrbiter(a1, 500, pixel.R(300, 200, screenWidth-300, screenHeight-200), .8, 1.0)
+	g1 := NewOrbiter(a1, 500, screenSafeDistance(50), .8, 1.0)
 	particles = append(particles, g1)
 
 	for i := 0; i < rand.Intn(5)+1; i++ {
 		m := .001 + rand.Float64()*(.05-.001)
-		p := NewOrbiter(g1, m, pixel.R(g1.pos.X+g1.radius+2, g1.pos.Y+g1.radius+2, g1.pos.X+g1.radius+10, g1.pos.Y+g1.radius+10), .95, 1.05)
+		p := NewOrbiter(g1, m, 10, .95, 1.05)
 		particles = append(particles, p)
 	}
 
 	for i := 0; i < rand.Intn(3)+1; i++ {
 		m := .1 + rand.Float64()*(10-.1)
-		p := NewOrbiter(a1, m, pixel.R(200, 200, screenWidth-200, screenHeight-200), .7, 1.1)
+		p := NewOrbiter(a1, m, screenSafeDistance(150), .7, 1.1)
 		particles = append(particles, p)
 	}
 
@@ -60,7 +61,7 @@ func random() []Particle {
 
 	var anchors []Particle
 	for i := 0; i < rand.Intn(15)+5; i++ {
-		pos := randomPos(pixel.R(100, 100, screenWidth-100, screenHeight-100))
+		pos := randomPos(pixel.R(50, 50, screenWidth-50, screenHeight-50))
 		m := 500 + rand.Float64()*(1000-500)
 		a1 := NewParticle(pos, pixel.V(0, 0), m)
 		a1.moveable = false
@@ -70,9 +71,14 @@ func random() []Particle {
 	}
 	for i := 0; i < rand.Intn(100)+10; i++ {
 		m := .01 + rand.Float64()*(100-.01)
-		p := NewOrbiter(anchors[rand.Intn(len(anchors))], m, pixel.R(250, 200, screenWidth-250, screenHeight-200), -1.5, 1.5)
+		p := NewOrbiter(anchors[rand.Intn(len(anchors))], m, randFloat(0, 400), -1.5, 1.5)
 		p.color = similarRandomColor(colorSeed)
 		particles = append(particles, p)
 	}
 	return particles
+}
+
+func screenSafeDistance(buffer float64) float64 {
+	// assumes that particle to orbit is at the center of the screen.
+	return math.Min(screenWidth, screenHeight)/2 - buffer
 }
