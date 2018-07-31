@@ -7,13 +7,17 @@ import (
 )
 
 func randomPos(bounds pixel.Rect) pixel.Vec {
-	x := bounds.Min.X + rand.Float64()*(bounds.Max.X-bounds.Min.X)
-	y := bounds.Min.Y + rand.Float64()*(bounds.Max.Y-bounds.Min.Y)
+	x := randFloat(bounds.Min.X, bounds.Max.X)
+	y := randFloat(bounds.Min.Y, bounds.Max.Y)
 	return pixel.V(x, y)
 }
 
 func randomVel(max float64) pixel.Vec {
-	x := -max + rand.Float64()*(max-(-max))
-	y := -max + rand.Float64()*(max-(-max))
+	x := randFloat(-max, max)
+	y := randFloat(-max, max)
 	return pixel.V(x, y)
+}
+
+func randFloat(min, max float64) float64 {
+	return min + rand.Float64()*(max-min)
 }

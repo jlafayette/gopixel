@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"math"
 	"math/rand"
 
@@ -15,7 +14,7 @@ type Particle struct {
 	prevPos  pixel.Vec
 	acc      pixel.Vec
 	vel      pixel.Vec
-	color    color.RGBA
+	color    pixel.RGBA
 	mass     float64
 	radius   float64
 	moveable bool

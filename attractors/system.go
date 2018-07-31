@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/faiface/pixel"
-	"golang.org/x/image/colornames"
 )
 
 func basic() []Particle {
 	var particles []Particle
 	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 5000)
-	a1.color = colornames.White
+	a1.color = pixel.RGB(1, 1, 1)
 	a1.moveable = false
 	particles = append(particles, a1)
 	seed := time.Now().UnixNano()
@@ -31,7 +30,7 @@ func gasGiant() []Particle {
 
 	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 15000)
 	a1.moveable = false
-	a1.color = colornames.White
+	a1.color = pixel.RGB(1, 1, 1)
 	particles = append(particles, a1)
 
 	g1 := NewOrbiter(a1, 500, pixel.R(300, 200, screenWidth-300, screenHeight-200), .8, 1.0)
@@ -66,7 +65,6 @@ func random() []Particle {
 		a1 := NewParticle(pos, pixel.V(0, 0), m)
 		a1.moveable = false
 		a1.visible = false
-		a1.color = colornames.Black
 		particles = append(particles, a1)
 		anchors = append(anchors, a1)
 	}

@@ -1,44 +1,41 @@
 package main
 
 import (
-	"image/color"
 	"math/rand"
+
+	"github.com/faiface/pixel"
 )
 
 // randomColor generates a random color
-func randomColor() color.RGBA {
-	return color.RGBA{
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
-		255,
-	}
+func randomColor() pixel.RGBA {
+	return pixel.RGB(
+		rand.Float64(),
+		rand.Float64(),
+		rand.Float64(),
+	)
 }
 
 // similar colors
-func similarRandomColor(i int) color.RGBA {
+func similarRandomColor(i int) pixel.RGBA {
 	switch i {
 	case 0:
-		return color.RGBA{
-			uint8(rand.Intn(156) + 100),
-			uint8(10),
-			uint8(rand.Intn(256)),
-			255,
-		}
+		return pixel.RGB(
+			randFloat(.33, 1),
+			.1,
+			rand.Float64(),
+		)
 	case 1:
-		return color.RGBA{
-			uint8(10),
-			uint8(rand.Intn(156) + 100),
-			uint8(rand.Intn(175)),
-			255,
-		}
+		return pixel.RGB(
+			.1,
+			randFloat(.33, 1),
+			randFloat(0, .5),
+		)
 	case 2:
-		return color.RGBA{
-			uint8(rand.Intn(256)),
-			uint8(rand.Intn(100)),
-			uint8(rand.Intn(156) + 100),
-			255,
-		}
+		return pixel.RGB(
+			rand.Float64(),
+			randFloat(0, .33),
+			randFloat(.33, 1),
+		)
 	}
 	return randomColor()
 }
