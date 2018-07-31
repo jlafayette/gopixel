@@ -60,6 +60,10 @@ func run() {
 			engine = NewEngine(random())
 			new = true
 		}
+		if win.JustPressed(pixelgl.Key4) {
+			engine = NewEngine(gravityPaths())
+			new = true
+		}
 		engine.update()
 		win.Update()
 

@@ -78,6 +78,42 @@ func random() []Particle {
 	return particles
 }
 
+func gravityPaths() []Particle {
+	var anchors []Particle
+	var particles []Particle
+	seed := time.Now().UnixNano()
+	rand.Seed(seed)
+	colorSeed := rand.Intn(3)
+
+	for i := 0; i < rand.Intn(15)+5; i++ {
+		pos := randomPos(pixel.R(50, 50, screenWidth-50, screenHeight-50))
+		m := 500 + rand.Float64()*(1000-500)
+		a1 := NewParticle(pos, pixel.V(0, 0), m)
+		a1.moveable = false
+		a1.visible = false
+		particles = append(particles, a1)
+		anchors = append(anchors, a1)
+	}
+
+	for i := 0; i < rand.Intn(1)+1000; i++ {
+		// position
+		x := randFloat(-2000, 0)
+		y := randFloat(0, screenHeight)
+		pos := pixel.V(x, y)
+
+		// velocity
+		vel := pixel.V(randFloat(10, 30), 0)
+
+		// mass
+		m := randFloat(.01, 10)
+
+		p := NewParticle(pos, vel, m)
+		p.color = similarRandomColor(colorSeed)
+		particles = append(particles, p)
+	}
+	return particles
+}
+
 func screenSafeDistance(buffer float64) float64 {
 	// assumes that particle to orbit is at the center of the screen.
 	return math.Min(screenWidth, screenHeight)/2 - buffer
