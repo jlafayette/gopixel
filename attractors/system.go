@@ -12,6 +12,7 @@ func basic() []Particle {
 	var particles []Particle
 	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 5000)
 	a1.color = colornames.White
+	a1.moveable = false
 	particles = append(particles, a1)
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
@@ -35,8 +36,6 @@ func gasGiant() []Particle {
 
 	g1 := NewOrbiter(a1, 500, pixel.R(300, 200, screenWidth-300, screenHeight-200), .8, 1.0)
 	particles = append(particles, g1)
-
-	// a1.vel = g1.vel
 
 	for i := 0; i < rand.Intn(5)+1; i++ {
 		m := .001 + rand.Float64()*(.05-.001)
@@ -75,9 +74,6 @@ func random() []Particle {
 		m := .01 + rand.Float64()*(100-.01)
 		p := NewOrbiter(anchors[rand.Intn(len(anchors))], m, pixel.R(250, 200, screenWidth-250, screenHeight-200), -1.5, 1.5)
 		p.color = similarRandomColor(colorSeed)
-		// pos := randomPos(pixel.R(450, 400, screenWidth-450, screenHeight-400))
-		// vel := randomVel(1)
-		// p := NewParticle(pos, vel, m)
 		particles = append(particles, p)
 	}
 	return particles
