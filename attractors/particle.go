@@ -15,10 +15,10 @@ type Particle struct {
 	prevPos  pixel.Vec
 	acc      pixel.Vec
 	vel      pixel.Vec
+	color    color.RGBA
 	mass     float64
 	radius   float64
 	moveable bool
-	color    color.RGBA
 	visible  bool
 }
 
@@ -31,10 +31,10 @@ func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
 		prevPos:  pos,
 		acc:      pixel.V(0, 0),
 		vel:      vel,
+		color:    c,
 		mass:     mass,
 		radius:   r,
 		moveable: true,
-		color:    c,
 		visible:  true,
 	}
 }
@@ -78,54 +78,4 @@ func radiusFromMass(mass float64) float64 {
 	// A/PI = r2
 	r := (math.Cbrt(mass/math.Pi) + math.Sqrt(mass/math.Pi)) / 2
 	return math.Max(r, 1)
-}
-
-// randomColor generates a random color
-func randomColor() color.RGBA {
-	return color.RGBA{
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
-		uint8(rand.Intn(256)),
-		255,
-	}
-}
-
-// similar colors
-func similarRandomColor(i int) color.RGBA {
-	switch i {
-	case 0:
-		return color.RGBA{
-			uint8(rand.Intn(156) + 100),
-			uint8(10),
-			uint8(rand.Intn(256)),
-			255,
-		}
-	case 1:
-		return color.RGBA{
-			uint8(10),
-			uint8(rand.Intn(156) + 100),
-			uint8(rand.Intn(175)),
-			255,
-		}
-	case 2:
-		return color.RGBA{
-			uint8(rand.Intn(256)),
-			uint8(rand.Intn(100)),
-			uint8(rand.Intn(156) + 100),
-			255,
-		}
-	}
-	return randomColor()
-}
-
-func randomPos(bounds pixel.Rect) pixel.Vec {
-	x := bounds.Min.X + rand.Float64()*(bounds.Max.X-bounds.Min.X)
-	y := bounds.Min.Y + rand.Float64()*(bounds.Max.Y-bounds.Min.Y)
-	return pixel.V(x, y)
-}
-
-func randomVel(max float64) pixel.Vec {
-	x := -max + rand.Float64()*(max-(-max))
-	y := -max + rand.Float64()*(max-(-max))
-	return pixel.V(x, y)
 }
