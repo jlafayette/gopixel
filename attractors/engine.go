@@ -58,6 +58,6 @@ func (e *Engine) update() {
 
 func (e *Engine) draw(imd *imdraw.IMDraw) {
 	for i := 0; i < len(e.particles); i++ {
-		e.particles[i].draw(imd)
+		e.particles[i].drawTrail(imd)
 	}
 }

@@ -65,12 +65,20 @@ func (p *Particle) update() {
 	}
 }
 
-func (p *Particle) draw(imd *imdraw.IMDraw) {
+func (p *Particle) drawTrail(imd *imdraw.IMDraw) {
 	if p.visible {
 		imd.Color = p.color
 		imd.Push(p.prevPos)
 		imd.Push(p.pos)
 		imd.Line(p.radius)
+	}
+}
+
+func (p *Particle) drawPos(imd *imdraw.IMDraw) {
+	if p.visible {
+		imd.Color = p.color
+		imd.Push(p.pos)
+		imd.Circle(p.radius, 0)
 	}
 }
 
