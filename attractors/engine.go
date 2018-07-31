@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"sync"
 
 	"github.com/faiface/pixel"
 
@@ -24,33 +25,14 @@ func NewEngine(particles []Particle) Engine {
 }
 
 func (e *Engine) update() {
+
+	var wg sync.WaitGroup
+
 	for i := 0; i < len(e.particles); i++ {
-		totalAcceleration := pixel.V(0, 0)
-		for j := 0; j < len(e.particles); j++ {
-			if i != j {
-				// Calculate force direction vector
-				dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.particles[j].pos)
-
-				// Get distance squared (minimum distance is radius of attractor)
-				distanceSq := math.Pow(math.Max(dir.Len(), e.particles[j].radius*3), 2)
-
-				// Calcuate magnitude:
-				//   F = G * (m1 * m2)/d2
-				//   F = M * A  ->  A = F / M
-				magnitude := G * ((e.particles[i].mass * e.particles[j].mass) / distanceSq)
-
-				// Alternat formula
-				// F = - G*M*m*r^(-2)
-				// magnitude := G * e.particles[i].mass * e.particles[j].mass * math.Pow(dir.Len(), -2)
-
-				acceleration := magnitude / e.particles[i].mass
-
-				// e.particles[i].acc = pixel.Unit(dir.Angle()).Scaled(acceleration)
-				totalAcceleration = totalAcceleration.Add(pixel.Unit(dir.Angle()).Scaled(acceleration))
-			}
-		}
-		e.particles[i].acc = totalAcceleration
+		wg.Add(1)
+		go e.updateParticleByIndex(i, &wg)
 	}
+	wg.Wait()
 	for i := 0; i < len(e.particles); i++ {
 		e.particles[i].update()
 	}
@@ -60,4 +42,35 @@ func (e *Engine) draw(imd *imdraw.IMDraw) {
 	for i := 0; i < len(e.particles); i++ {
 		e.particles[i].drawTrail(imd)
 	}
+}
+
+func (e *Engine) updateParticleByIndex(i int, wg *sync.WaitGroup) {
+
+	defer wg.Done()
+
+	totalAcceleration := pixel.V(0, 0)
+	for j := 0; j < len(e.particles); j++ {
+		if i != j {
+			// Calculate force direction vector
+			dir := e.particles[i].pos.Add(e.particles[i].vel).To(e.particles[j].pos)
+
+			// Get distance squared (minimum distance is radius of attractor)
+			distanceSq := math.Pow(math.Max(dir.Len(), e.particles[j].radius*3), 2)
+
+			// Calcuate magnitude:
+			//   F = G * (m1 * m2)/d2
+			//   F = M * A  ->  A = F / M
+			magnitude := G * ((e.particles[i].mass * e.particles[j].mass) / distanceSq)
+
+			// Alternat formula
+			// F = - G*M*m*r^(-2)
+			// magnitude := G * e.particles[i].mass * e.particles[j].mass * math.Pow(dir.Len(), -2)
+
+			acceleration := magnitude / e.particles[i].mass
+
+			// e.particles[i].acc = pixel.Unit(dir.Angle()).Scaled(acceleration)
+			totalAcceleration = totalAcceleration.Add(pixel.Unit(dir.Angle()).Scaled(acceleration))
+		}
+	}
+	e.particles[i].acc = totalAcceleration
 }

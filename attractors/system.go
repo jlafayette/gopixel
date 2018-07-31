@@ -95,7 +95,7 @@ func gravityPaths() []Particle {
 		anchors = append(anchors, a1)
 	}
 
-	for i := 0; i < rand.Intn(1)+1000; i++ {
+	for i := 0; i < rand.Intn(1)+500; i++ {
 		// position
 		x := randFloat(-2000, 0)
 		y := randFloat(0, screenHeight)
