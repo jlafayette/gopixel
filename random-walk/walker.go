@@ -5,36 +5,43 @@ import (
 	"math/rand"
 
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 )
 
 // Walker will wander around the screen.
 type Walker struct {
-	pos   pixel.Vec
-	steps []pixel.Vec
+	pos    pixel.Vec
+	steps  []pixel.Vec
+	sprite *pixel.Sprite
+	mask   pixel.RGBA
 }
 
 // NewWalker creates a new Walker at the middle of the screen.
-func NewWalker(stepsPerFrame int) Walker {
+func NewWalker(stepsPerFrame int, sprite *pixel.Sprite) Walker {
 	return Walker{
-		pos:   pixel.V(screenWidth/2, screenHeight/2),
-		steps: make([]pixel.Vec, stepsPerFrame, stepsPerFrame),
+		pos:    pixel.V(screenWidth/2, screenHeight/2),
+		steps:  make([]pixel.Vec, stepsPerFrame, stepsPerFrame),
+		sprite: sprite,
+		mask:   pixel.Alpha(.25),
 	}
 }
 
 func (w *Walker) update() {
 	for i := 0; i < len(w.steps); i++ {
 		move := pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(1)
-		w.pos = w.pos.Add(move)
-		w.steps[i] = w.pos
+		pos := w.pos.Add(move)
+		if pos.X > 0 && pos.Y > 0 && pos.X < screenWidth && pos.Y < screenHeight {
+			w.pos = pos
+			w.steps[i] = pos
+		}
 	}
 }
 
-func (w *Walker) draw(imd *imdraw.IMDraw) {
+func (w *Walker) draw(batch *pixel.Batch) {
 	for i := 0; i < len(w.steps); i++ {
-		imd.Push(w.steps[i])
+		mat := pixel.IM
+		mat = mat.Moved(w.steps[i])
+		w.sprite.DrawColorMask(batch, mat, w.mask)
 	}
-	imd.Circle(1, 0)
 }
 
 func randFloat(min, max float64) float64 {

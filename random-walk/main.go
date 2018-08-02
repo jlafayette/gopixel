@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/faiface/pixel/imdraw"
-
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -26,30 +24,38 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	win.SetSmooth(true)
+	// win.SetSmooth(true)
+
+	pic, err := loadPicture("1-black-pixel.png")
+	if err != nil {
+		panic(err)
+	}
+	sprite := pixel.NewSprite(pic, pic.Bounds())
+	batch := pixel.NewBatch(&pixel.TrianglesData{}, pic)
 
 	var (
 		frames = 0
 		second = time.Tick(time.Second)
 	)
 
-	imd := imdraw.New(nil)
-	imd.Color = pixel.RGB(.1, .1, .1)
-	imd.EndShape = imdraw.RoundEndShape
 	background := pixel.RGB(.9, .9, .9)
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
 	win.Clear(background)
 
-	w := NewWalker(100)
+	w := NewWalker(10, sprite)
+	new := true
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
+		if win.JustPressed(pixelgl.KeyLeftControl) {
+			w = NewWalker(10, sprite)
+			new = true
+		}
 		w.update()
-		win.Update()
 
 		// DRAW
 		select {
@@ -58,9 +64,15 @@ func run() {
 			frames = 0
 		default:
 		}
-		imd.Clear()
-		w.draw(imd)
-		imd.Draw(win)
+		if new {
+			win.Clear(background)
+			new = false
+		}
+		w.draw(batch)
+		batch.Draw(win)
+		batch.Clear()
+
+		win.Update()
 	}
 }
 
