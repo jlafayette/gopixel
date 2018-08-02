@@ -9,15 +9,16 @@ import (
 
 // Particle is a dynamic point that is being simulated and responds to forces.
 type Particle struct {
-	pos      pixel.Vec
-	prevPos  pixel.Vec
-	acc      pixel.Vec
-	vel      pixel.Vec
-	color    pixel.RGBA
-	mass     float64
-	radius   float64
-	moveable bool
-	visible  bool
+	pos        pixel.Vec
+	prevPos    pixel.Vec
+	acc        pixel.Vec
+	vel        pixel.Vec
+	color      pixel.RGBA
+	mass       float64
+	radius     float64
+	halfRadius float64
+	moveable   bool
+	visible    bool
 }
 
 // NewParticle instantiates a new particle
@@ -25,15 +26,16 @@ func NewParticle(pos, vel pixel.Vec, mass float64) Particle {
 	r := radiusFromMass(mass)
 	c := randomColor()
 	return Particle{
-		pos:      pos,
-		prevPos:  pos,
-		acc:      pixel.V(0, 0),
-		vel:      vel,
-		color:    c,
-		mass:     mass,
-		radius:   r,
-		moveable: true,
-		visible:  true,
+		pos:        pos,
+		prevPos:    pos,
+		acc:        pixel.V(0, 0),
+		vel:        vel,
+		color:      c,
+		mass:       mass,
+		radius:     r,
+		halfRadius: r / 2,
+		moveable:   true,
+		visible:    true,
 	}
 }
 
@@ -77,7 +79,7 @@ func (p *Particle) drawPos(imd *imdraw.IMDraw) {
 	if p.visible {
 		imd.Color = p.color
 		imd.Push(p.pos)
-		imd.Circle(p.radius, 0)
+		imd.Circle(p.halfRadius, 0)
 	}
 }
 

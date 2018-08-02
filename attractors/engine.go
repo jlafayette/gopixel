@@ -12,15 +12,26 @@ import (
 // G is the gravitational constant
 const G float64 = 6.674
 
+// DrawMode to use
+type DrawMode int
+
+// Determine how to draw trails
+const (
+	Dots DrawMode = iota + 1
+	Trails
+)
+
 // Engine will keep track of all physics objects and calcuate forces
 type Engine struct {
 	particles []Particle
+	drawMode  DrawMode
 }
 
 // NewEngine initializes a new physics engine
-func NewEngine(particles []Particle) Engine {
+func NewEngine(particles []Particle, drawMode DrawMode) Engine {
 	return Engine{
 		particles: particles,
+		drawMode:  drawMode,
 	}
 }
 
@@ -40,7 +51,12 @@ func (e *Engine) update() {
 
 func (e *Engine) draw(imd *imdraw.IMDraw) {
 	for i := 0; i < len(e.particles); i++ {
-		e.particles[i].drawTrail(imd)
+		switch e.drawMode {
+		case Dots:
+			e.particles[i].drawPos(imd)
+		case Trails:
+			e.particles[i].drawTrail(imd)
+		}
 	}
 }
 

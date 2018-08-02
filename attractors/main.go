@@ -40,7 +40,7 @@ func run() {
 	background := colornames.Black
 	win.Clear(background)
 
-	engine := NewEngine(basic())
+	engine := NewEngine(basic(), Trails)
 	new := false
 
 	// main loop
@@ -49,20 +49,31 @@ func run() {
 		// UPDATE
 		frames++
 		if win.JustPressed(pixelgl.Key1) {
-			engine = NewEngine(basic())
+			engine = NewEngine(basic(), engine.drawMode)
 			new = true
 		}
 		if win.JustPressed(pixelgl.Key2) {
-			engine = NewEngine(gasGiant())
+			engine = NewEngine(basic2(), engine.drawMode)
 			new = true
 		}
 		if win.JustPressed(pixelgl.Key3) {
-			engine = NewEngine(random())
+			engine = NewEngine(gasGiant(), engine.drawMode)
 			new = true
 		}
 		if win.JustPressed(pixelgl.Key4) {
-			engine = NewEngine(gravityPaths())
+			engine = NewEngine(random(), engine.drawMode)
 			new = true
+		}
+		if win.JustPressed(pixelgl.Key5) {
+			engine = NewEngine(gravityPaths(), engine.drawMode)
+			new = true
+		}
+		if win.JustPressed(pixelgl.KeyD) {
+			if engine.drawMode == Dots {
+				engine.drawMode = Trails
+			} else {
+				engine.drawMode = Dots
+			}
 		}
 		engine.update()
 		win.Update()

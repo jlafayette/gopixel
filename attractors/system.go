@@ -10,15 +10,32 @@ import (
 
 func basic() []Particle {
 	var particles []Particle
-	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), 5000)
+	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), randFloat(3000, 7000))
 	a1.color = pixel.RGB(1, 1, 1)
 	a1.moveable = false
 	particles = append(particles, a1)
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
 	for i := 0; i < rand.Intn(9)+1; i++ {
-		m := .01 + rand.Float64()*(1.5-.01)
+		m := randFloat(.01, 1.5)
 		p := NewOrbiter(a1, m, screenSafeDistance(150), .5, 1.05)
+		p.color.A = .25
+		particles = append(particles, p)
+	}
+	return particles
+}
+
+func basic2() []Particle {
+	var particles []Particle
+	a1 := NewParticle(pixel.V(screenWidth/2, screenHeight/2), pixel.V(0, 0), randFloat(2000, 8000))
+	a1.color = pixel.RGB(1, 1, 1)
+	a1.moveable = false
+	particles = append(particles, a1)
+	seed := time.Now().UnixNano()
+	rand.Seed(seed)
+	for i := 0; i < rand.Intn(9)+2; i++ {
+		m := randFloat(.05, 100)
+		p := NewOrbiter(a1, m, screenSafeDistance(100), .5, 1.05)
 		p.color.A = .25
 		particles = append(particles, p)
 	}
