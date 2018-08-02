@@ -19,6 +19,7 @@ func basic() []Particle {
 	for i := 0; i < rand.Intn(9)+1; i++ {
 		m := .01 + rand.Float64()*(1.5-.01)
 		p := NewOrbiter(a1, m, screenSafeDistance(150), .5, 1.05)
+		p.color.A = .25
 		particles = append(particles, p)
 	}
 	return particles
@@ -35,17 +36,20 @@ func gasGiant() []Particle {
 	particles = append(particles, a1)
 
 	g1 := NewOrbiter(a1, 500, screenSafeDistance(50), .8, 1.0)
+	g1.color.A = .001
 	particles = append(particles, g1)
 
 	for i := 0; i < rand.Intn(5)+1; i++ {
 		m := .001 + rand.Float64()*(.05-.001)
 		p := NewOrbiter(g1, m, 10, .95, 1.05)
+		p.color.A = .35
 		particles = append(particles, p)
 	}
 
 	for i := 0; i < rand.Intn(3)+1; i++ {
 		m := .1 + rand.Float64()*(10-.1)
 		p := NewOrbiter(a1, m, screenSafeDistance(150), .7, 1.1)
+		p.color.A = .25
 		particles = append(particles, p)
 	}
 
@@ -73,6 +77,7 @@ func random() []Particle {
 		m := .01 + rand.Float64()*(100-.01)
 		p := NewOrbiter(anchors[rand.Intn(len(anchors))], m, randFloat(0, 400), -1.5, 1.5)
 		p.color = similarRandomColor(colorSeed)
+		p.color.A = .1
 		particles = append(particles, p)
 	}
 	return particles
@@ -109,6 +114,7 @@ func gravityPaths() []Particle {
 
 		p := NewParticle(pos, vel, m)
 		p.color = similarRandomColor(colorSeed)
+		p.color.A = .1
 		particles = append(particles, p)
 	}
 	return particles
