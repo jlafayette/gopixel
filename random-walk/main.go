@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/faiface/pixel/imdraw"
@@ -36,14 +37,18 @@ func run() {
 	imd.Color = pixel.RGB(.1, .1, .1)
 	imd.EndShape = imdraw.RoundEndShape
 	background := pixel.RGB(.9, .9, .9)
+	seed := time.Now().UnixNano()
+	rand.Seed(seed)
 	win.Clear(background)
+
+	w := NewWalker(100)
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
-
+		w.update()
 		win.Update()
 
 		// DRAW
@@ -54,6 +59,7 @@ func run() {
 		default:
 		}
 		imd.Clear()
+		w.draw(imd)
 		imd.Draw(win)
 	}
 }
