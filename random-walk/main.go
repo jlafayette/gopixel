@@ -43,7 +43,7 @@ func run() {
 	rand.Seed(seed)
 	win.Clear(background)
 
-	w := NewWalker(10, sprite)
+	w := NewWalker(100, sprite)
 	new := true
 
 	// main loop
@@ -52,7 +52,7 @@ func run() {
 		// UPDATE
 		frames++
 		if win.JustPressed(pixelgl.KeyLeftControl) {
-			w = NewWalker(10, sprite)
+			w = NewWalker(10000, sprite)
 			new = true
 		}
 		w.update()

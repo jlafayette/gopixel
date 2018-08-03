@@ -27,7 +27,7 @@ func NewWalker(stepsPerFrame int, sprite *pixel.Sprite) Walker {
 
 func (w *Walker) update() {
 	for i := 0; i < len(w.steps); i++ {
-		move := pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(1)
+		move := pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(randFloat(1, 7))
 		pos := w.pos.Add(move)
 		if pos.X > 0 && pos.Y > 0 && pos.X < screenWidth && pos.Y < screenHeight {
 			w.pos = pos
