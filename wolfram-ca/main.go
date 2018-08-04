@@ -25,7 +25,7 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	// win.SetSmooth(true)
+	win.SetSmooth(true)
 
 	// Create an 1 x 1 image
 	err = writeColorToPng("out.png", 1, 1, color.RGBA{0, 0, 0, 255})
@@ -58,11 +58,9 @@ func run() {
 
 		// UPDATE
 		frames++
-		if win.JustPressed(pixelgl.KeyLeftControl) {
-			r = NewRule()
-			new = true
+		if new {
+			r.update()
 		}
-		r.update()
 
 		// DRAW
 		select {
@@ -73,9 +71,9 @@ func run() {
 		}
 		if new {
 			win.Clear(background)
+			r.draw(win)
 			new = false
 		}
-		r.draw(win)
 		// batch.Draw(win)
 		// batch.Clear()
 		win.Update()
