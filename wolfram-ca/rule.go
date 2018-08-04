@@ -3,7 +3,6 @@ package main
 import (
 	"image"
 	"image/color"
-	"math/rand"
 
 	"github.com/faiface/pixel"
 )
@@ -12,6 +11,7 @@ import (
 type Rule struct {
 	on      color.RGBA
 	off     color.RGBA
+	rule    [8]bool
 	row     []bool
 	prevRow []bool
 }
@@ -21,6 +21,7 @@ func NewRule() Rule {
 	return Rule{
 		on:      color.RGBA{255, 255, 255, 255},
 		off:     color.RGBA{0, 0, 0, 255},
+		rule:    translateRule(30),
 		row:     make([]bool, screenWidth, screenWidth),
 		prevRow: make([]bool, screenWidth, screenWidth),
 	}
@@ -64,8 +65,19 @@ func (r *Rule) draw(t pixel.Target) {
 				right = r.prevRow[x+1]
 			}
 			// fmt.Printf("%d %d%d%d\n", x, bToI(left), bToI(me), bToI(right))
-			r.row[x] = r.whatAmI(left, me, right)
+			// r.row[x] = r.whatAmI(left, me, right)
 			// fmt.Printf("   %d \n", bToI(r.row[x]))
+			n := 0
+			if left {
+				n = n + 4
+			}
+			if me {
+				n = n + 2
+			}
+			if right {
+				n = n + 1
+			}
+			r.row[x] = applyRule(byte(n), r.rule)
 
 			if r.row[x] {
 				img.Set(x, y, r.on)
@@ -91,28 +103,21 @@ func bToI(b bool) int {
 	return 0
 }
 
-func (*Rule) whatAmI(left, me, right bool) bool {
-	// return false
-	if left && me && right {
-		return false
-	} else if left && me && !right {
-		return false
-	} else if left && !me && right {
-		return false
-	} else if left && !me && !right {
-		return true
-	} else if !left && me && right {
-		return true
-	} else if !left && me && !right {
-		return true
-	} else if !left && !me && right {
-		return true
-	} else if !left && !me && !right {
-		return false
-	}
-	panic("help!")
+func applyRule(prev byte, rule [8]bool) bool {
+	return rule[uint8(prev)]
+	// for i := 0; i < 8; i++ {
+	// 	fmt.Printf("%03b %v\n", byte(i), r[i])
+	// }
 }
 
-func randFloat(min, max float64) float64 {
-	return min + rand.Float64()*(max-min)
+func translateRule(rule uint8) [8]bool {
+	//fmt.Println(rule)
+	var r [8]bool
+	for i := uint8(0); i < 8; i++ {
+		n := 1 << i
+		//fmt.Printf("%d -> %d", i, 1<<i)
+		//fmt.Printf("r: %08b\n", byte(rule)&byte(n))
+		r[i] = uint8(byte(rule)&byte(n)) > 0
+	}
+	return r
 }
