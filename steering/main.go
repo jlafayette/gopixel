@@ -38,8 +38,8 @@ func run() {
 	background := pixel.RGB(.9, .9, .9)
 	win.Clear(background)
 
-	v := NewVehicle()
 	t := NewTarget(pixel.V(screenWidth/2, screenHeight/2))
+	v := NewVehicle(&t)
 
 	// main loop
 	for !win.Closed() {
