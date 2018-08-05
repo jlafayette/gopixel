@@ -72,6 +72,8 @@ func (f *Field) draw(imd *imdraw.IMDraw) {
 			imd.Push(f.cells[x][y].drawStart)
 			imd.Push(f.cells[x][y].drawEnd)
 			imd.Line(1)
+			imd.Push(f.cells[x][y].drawStart)
+			imd.Circle(3, 0)
 		}
 	}
 }
