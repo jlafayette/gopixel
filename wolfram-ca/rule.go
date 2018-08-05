@@ -14,16 +14,24 @@ type Rule struct {
 	rule    [8]bool
 	row     []bool
 	prevRow []bool
+	scale   int
+	width   int
+	height  int
 }
 
 // NewRule ...
-func NewRule(rule uint8) Rule {
+func NewRule(rule uint8, scale int) Rule {
+	width := screenWidth / scale
+	height := screenHeight / scale
 	return Rule{
-		on:      color.RGBA{255, 255, 255, 255},
-		off:     color.RGBA{0, 0, 0, 255},
+		on:      color.RGBA{200, 200, 200, 255},
+		off:     color.RGBA{100, 100, 100, 255},
 		rule:    translateRule(rule),
-		row:     make([]bool, screenWidth, screenWidth),
-		prevRow: make([]bool, screenWidth, screenWidth),
+		row:     make([]bool, width, width),
+		prevRow: make([]bool, width, width),
+		scale:   scale,
+		width:   width,
+		height:  height,
 	}
 }
 
@@ -31,11 +39,11 @@ func (r *Rule) update() {
 }
 
 func (r *Rule) draw(t pixel.Target) {
-	img := image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight))
+	img := image.NewRGBA(image.Rect(0, 0, r.width, r.height))
 
 	// first row has one on pixel in the middle
-	for x := 0; x < screenWidth; x++ {
-		if x == screenWidth/2 {
+	for x := 0; x < r.width; x++ {
+		if x == r.width/2 {
 			img.Set(x, 0, r.on)
 			r.row[x] = true
 		} else {
@@ -49,8 +57,8 @@ func (r *Rule) draw(t pixel.Target) {
 		r.prevRow[i] = r.row[i]
 	}
 
-	for y := 1; y < screenHeight; y++ {
-		for x := 0; x < screenWidth; x++ {
+	for y := 1; y < r.height; y++ {
+		for x := 0; x < r.width; x++ {
 
 			// determine r.row[x]
 			var neighbors byte // arrangement in previous row: left, middle, right
@@ -60,14 +68,14 @@ func (r *Rule) draw(t pixel.Target) {
 			}
 			// left
 			if x == 0 {
-				if r.prevRow[screenWidth-1] {
+				if r.prevRow[r.width-1] {
 					neighbors = neighbors | byte(4)
 				}
 			} else if r.prevRow[x-1] {
 				neighbors = neighbors | byte(4)
 			}
 			// right
-			if x == screenWidth-1 {
+			if x == r.width-1 {
 				if r.prevRow[0] {
 					neighbors = neighbors | byte(1)
 				}
@@ -92,7 +100,11 @@ func (r *Rule) draw(t pixel.Target) {
 	}
 	pic := pixel.PictureDataFromImage(img)
 	sprite := pixel.NewSprite(pic, pic.Bounds())
-	sprite.Draw(t, pixel.IM.Moved(pic.Bounds().Center()))
+	m := pixel.IM
+	m = m.Moved(pic.Bounds().Center())
+	m = m.ScaledXY(pixel.ZV, pixel.V(float64(r.scale), float64(r.scale)))
+
+	sprite.Draw(t, m)
 }
 
 func applyRule(prev byte, rule [8]bool) bool {

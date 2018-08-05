@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	screenWidth  = 800
-	screenHeight = 800
+	screenWidth  = 1800
+	screenHeight = 960
 )
 
 func run() {
@@ -35,7 +35,7 @@ func run() {
 
 	var ruleNum uint8 = 30
 	var step uint8 = 1
-	r := NewRule(ruleNum)
+	r := NewRule(ruleNum, 4)
 	new := true
 
 	// main loop
@@ -55,12 +55,12 @@ func run() {
 
 		if win.JustPressed(pixelgl.KeyRight) {
 			ruleNum = ruleNum + step
-			r = NewRule(ruleNum)
+			r = NewRule(ruleNum, 4)
 			new = true
 		}
 		if win.JustPressed(pixelgl.KeyLeft) {
 			ruleNum = ruleNum - step
-			r = NewRule(ruleNum)
+			r = NewRule(ruleNum, 4)
 			new = true
 		}
 		if new {
