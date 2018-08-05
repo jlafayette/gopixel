@@ -27,21 +27,21 @@ type cell struct {
 }
 
 func newCell(x, y int) cell {
+	force := pixel.Unit(randFloat(0, 2*math.Pi))
+	return cell{
+		force: force,
+	}
+}
+
+func (c *cell) calculateDrawPoints(x, y int) {
 	pixelPerCellX := screenWidth / numX
 	halfX := pixelPerCellX / 2
 	pixelPerCellY := screenHeight / numY
 	halfY := pixelPerCellY / 2
 	shortestHalf := math.Min(float64(halfX), float64(halfY)) * .75
-
-	force := pixel.Unit(randFloat(0, 2*math.Pi))
 	center := pixel.V(float64(pixelPerCellX*x+halfX), float64(pixelPerCellY*y+halfY))
-	start := center.Sub(force.Scaled(shortestHalf))
-	end := center.Add(force.Scaled(shortestHalf))
-	return cell{
-		force:     force,
-		drawStart: start,
-		drawEnd:   end,
-	}
+	c.drawStart = center.Sub(c.force.Scaled(shortestHalf))
+	c.drawEnd = center.Add(c.force.Scaled(shortestHalf))
 }
 
 // NewField ...
@@ -51,6 +51,7 @@ func NewField() Field {
 		color: pixel.RGB(.5, .5, .5),
 	}
 	f.randomizeFlow()
+	f.averageFlow()
 	return f
 }
 
@@ -58,6 +59,77 @@ func (f *Field) randomizeFlow() {
 	for x := 0; x < numX; x++ {
 		for y := 0; y < numY; y++ {
 			f.cells[x][y] = newCell(x, y)
+		}
+	}
+}
+
+func (f *Field) averageFlow() {
+
+	for x := 0; x < numX; x++ {
+		for y := 0; y < numY; y++ {
+			neighbors := make([]pixel.Vec, 8, 8)
+			// left
+			if x == 0 {
+				neighbors[0] = f.cells[x][y].force
+			} else {
+				neighbors[0] = f.cells[x-1][y].force
+			}
+			// topleft
+			if x == 0 || y == numY-1 {
+				neighbors[1] = f.cells[x][y].force
+			} else {
+				neighbors[1] = f.cells[x-1][y+1].force
+			}
+			// top
+			if y == numY-1 {
+				neighbors[2] = f.cells[x][y].force
+			} else {
+				neighbors[2] = f.cells[x][y+1].force
+			}
+			// topright
+			if x == numX-1 || y == numY-1 {
+				neighbors[3] = f.cells[x][y].force
+			} else {
+				neighbors[3] = f.cells[x+1][y+1].force
+			}
+			// right
+			if x == numX-1 {
+				neighbors[4] = f.cells[x][y].force
+			} else {
+				neighbors[4] = f.cells[x+1][y].force
+			}
+			// bottomright
+			if x == numX-1 || y == 0 {
+				neighbors[5] = f.cells[x][y].force
+			} else {
+				neighbors[5] = f.cells[x+1][y-1].force
+			}
+			// bottom
+			if y == 0 {
+				neighbors[6] = f.cells[x][y].force
+			} else {
+				neighbors[6] = f.cells[x][y-1].force
+			}
+			// bottomleft
+			if x == 0 || y == 0 {
+				neighbors[7] = f.cells[x][y].force
+			} else {
+				neighbors[7] = f.cells[x-1][y-1].force
+			}
+			sumX := f.cells[x][y].force.X
+			sumY := f.cells[x][y].force.Y
+			for i := 0; i < len(neighbors); i++ {
+				sumX = sumX + neighbors[i].X
+				sumY = sumY + neighbors[i].Y
+			}
+			averageX := sumX / 9
+			averageY := sumY / 9
+			f.cells[x][y].force = pixel.V(averageX, averageY)
+		}
+	}
+	for x := 0; x < numX; x++ {
+		for y := 0; y < numY; y++ {
+			f.cells[x][y].calculateDrawPoints(x, y)
 		}
 	}
 }
