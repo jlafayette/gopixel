@@ -43,16 +43,22 @@ func run() {
 	win.Clear(background)
 
 	f := NewField()
-	v := NewVehicle(pixel.V(200, screenHeight/2), &f)
-	// newField := true
+	var vehicles []Vehicle
+	vehicles = append(vehicles, NewVehicle(pixel.V(screenWidth/2, screenHeight/2), &f))
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
+		if win.JustPressed(pixelgl.MouseButtonLeft) {
+			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &f))
+		}
+
 		f.update()
-		v.update()
+		for i := 0; i < len(vehicles); i++ {
+			vehicles[i].update()
+		}
 
 		// DRAW
 		select {
@@ -61,15 +67,12 @@ func run() {
 			frames = 0
 		default:
 		}
-		// if newField {
-		// 	win.Clear(background)
-		// 	f.draw()
-		// 	newField = false
-		// }
 		win.Clear(background)
 		imd.Clear()
-		v.draw(imd)
 		f.draw(imd)
+		for i := 0; i < len(vehicles); i++ {
+			vehicles[i].draw(imd)
+		}
 		imd.Draw(win)
 
 		win.Update()

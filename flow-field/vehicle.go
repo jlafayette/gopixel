@@ -24,15 +24,15 @@ func NewVehicle(pos pixel.Vec, field *Field) Vehicle {
 
 	return Vehicle{
 		pos:      pos,
-		acc:      pixel.V(0, 0),
-		vel:      pixel.V(0, 3),
+		acc:      pixel.ZV,
+		vel:      pixel.ZV,
 		field:    field,
 		col:      pixel.RGB(0, .8, 0),
 		colShade: pixel.RGB(0, .2, 0),
 		velCol:   pixel.RGB(1, 0, 0),
 		accCol:   pixel.RGB(0, 0, 1),
-		maxSpeed: 3,
-		maxForce: .1,
+		maxSpeed: 4,
+		maxForce: .2,
 	}
 }
 
