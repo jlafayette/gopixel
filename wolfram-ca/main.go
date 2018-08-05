@@ -35,8 +35,8 @@ func run() {
 
 	var ruleNum uint8 = 30
 	var step uint8 = 1
+	var new = true
 	r := NewRule(ruleNum, 4)
-	new := true
 
 	// main loop
 	for !win.Closed() {
@@ -51,6 +51,9 @@ func run() {
 			step = 32
 		} else {
 			step = 1
+		}
+		if win.JustPressed(pixelgl.KeyDown) {
+			r.scrollDown = true
 		}
 
 		if win.JustPressed(pixelgl.KeyRight) {
@@ -70,7 +73,6 @@ func run() {
 		// DRAW
 		select {
 		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | Rule %d   %08b", cfg.Title, ruleNum, byte(ruleNum)))
 			frames = 0
 		default:
 		}
@@ -79,6 +81,11 @@ func run() {
 			r.draw(win)
 			new = false
 		}
+		if r.scrollDown {
+			win.Clear(background)
+			r.draw(win)
+		}
+		win.SetTitle(fmt.Sprintf("%s | Rule %d   %08b", cfg.Title, ruleNum, byte(ruleNum)))
 		win.Update()
 	}
 }

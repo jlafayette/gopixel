@@ -9,14 +9,15 @@ import (
 
 // Rule ....
 type Rule struct {
-	on      color.RGBA
-	off     color.RGBA
-	rule    [8]bool
-	row     []bool
-	prevRow []bool
-	scale   int
-	width   int
-	height  int
+	on         color.RGBA
+	off        color.RGBA
+	rule       [8]bool
+	row        []bool
+	prevRow    []bool
+	scale      int
+	width      int
+	height     int
+	scrollDown bool
 }
 
 // NewRule ...
@@ -42,22 +43,26 @@ func (r *Rule) draw(t pixel.Target) {
 	img := image.NewRGBA(image.Rect(0, 0, r.width, r.height))
 
 	// first row has one on pixel in the middle
-	for x := 0; x < r.width; x++ {
-		if x == r.width/2 {
-			img.Set(x, 0, r.on)
-			r.row[x] = true
-		} else {
-			img.Set(x, 0, r.off)
-			r.row[x] = false
+	rowIndex := 0
+	if !r.scrollDown {
+		for x := 0; x < r.width; x++ {
+			if x == r.width/2 {
+				img.Set(x, rowIndex, r.on)
+				r.row[x] = true
+			} else {
+				img.Set(x, rowIndex, r.off)
+				r.row[x] = false
+			}
+		}
+		rowIndex = 1
+
+		// swap row with previous
+		for i := 0; i < len(r.row); i++ {
+			r.prevRow[i] = r.row[i]
 		}
 	}
 
-	// swap row with previous
-	for i := 0; i < len(r.row); i++ {
-		r.prevRow[i] = r.row[i]
-	}
-
-	for y := 1; y < r.height; y++ {
+	for y := rowIndex; y < r.height; y++ {
 		for x := 0; x < r.width; x++ {
 
 			// determine r.row[x]
@@ -98,12 +103,13 @@ func (r *Rule) draw(t pixel.Target) {
 		}
 
 	}
+	r.scrollDown = false
+
 	pic := pixel.PictureDataFromImage(img)
 	sprite := pixel.NewSprite(pic, pic.Bounds())
 	m := pixel.IM
 	m = m.Moved(pic.Bounds().Center())
 	m = m.ScaledXY(pixel.ZV, pixel.V(float64(r.scale), float64(r.scale)))
-
 	sprite.Draw(t, m)
 }
 
