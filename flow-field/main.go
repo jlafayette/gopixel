@@ -69,7 +69,7 @@ func run() {
 		win.Clear(background)
 		imd.Clear()
 		v.draw(imd)
-		f.draw()
+		f.draw(imd)
 		imd.Draw(win)
 
 		win.Update()
