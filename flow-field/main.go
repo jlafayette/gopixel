@@ -42,9 +42,9 @@ func run() {
 	background := pixel.RGB(.9, .9, .9)
 	win.Clear(background)
 
-	v := NewVehicle(pixel.V(200, screenHeight/2))
 	f := NewField()
-	newField := true
+	v := NewVehicle(pixel.V(200, screenHeight/2), &f)
+	// newField := true
 
 	// main loop
 	for !win.Closed() {
@@ -61,11 +61,11 @@ func run() {
 			frames = 0
 		default:
 		}
-		if newField {
-			// win.Clear(background)
-			// f.draw()
-			newField = false
-		}
+		// if newField {
+		// 	win.Clear(background)
+		// 	f.draw()
+		// 	newField = false
+		// }
 		win.Clear(background)
 		imd.Clear()
 		v.draw(imd)

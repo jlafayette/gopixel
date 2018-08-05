@@ -77,7 +77,13 @@ func (f *Field) draw(imd *imdraw.IMDraw) {
 }
 
 func (f *Field) lookup(pos pixel.Vec) pixel.Vec {
-	return pixel.Unit(0)
+	pixelPerCellX := screenWidth / numX
+	pixelPerCellY := screenHeight / numY
+	x := pos.X / float64(pixelPerCellX)
+	y := pos.Y / float64(pixelPerCellY)
+	x = pixel.Clamp(x, 0, numX-1)
+	y = pixel.Clamp(y, 0, numY-1)
+	return f.cells[int(x)][int(y)].force
 }
 
 func randFloat(min, max float64) float64 {
