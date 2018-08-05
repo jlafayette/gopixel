@@ -11,6 +11,10 @@ type Vehicle struct {
 	acc          pixel.Vec
 	vel          pixel.Vec
 	tgt          *Target
+	col          pixel.RGBA
+	colShade     pixel.RGBA
+	velCol       pixel.RGBA
+	accCol       pixel.RGBA
 	maxSpeed     float64
 	maxForce     float64
 	arriveRadius float64
@@ -24,6 +28,10 @@ func NewVehicle(tgt *Target) Vehicle {
 		acc:          pixel.V(0, 0),
 		vel:          pixel.V(0, 3),
 		tgt:          tgt,
+		col:          pixel.RGB(0, .8, 0),
+		colShade:     pixel.RGB(0, .2, 0),
+		velCol:       pixel.RGB(1, 0, 0),
+		accCol:       pixel.RGB(0, 0, 1),
 		maxSpeed:     3,
 		maxForce:     .1,
 		arriveRadius: 50,
@@ -53,9 +61,20 @@ func (v *Vehicle) seek(tgt pixel.Vec) {
 }
 
 func (v *Vehicle) draw(imd *imdraw.IMDraw) {
-	// TODO: Use a sprite to draw this
+	imd.Color = v.col
 	imd.Push(v.pos)
 	imd.Circle(5, 0)
+	imd.Color = v.colShade
+	imd.Push(v.pos)
+	imd.Circle(5, 1)
+	imd.Color = v.velCol
+	imd.Push(v.pos)
+	imd.Push(v.pos.Add(v.vel.Scaled(5)))
+	imd.Line(1)
+	imd.Color = v.accCol
+	imd.Push(v.pos)
+	imd.Push(v.pos.Add(v.acc.Scaled(75)))
+	imd.Line(1)
 }
 
 func mapRange(in, inMin, inMax, outMin, outMax float64) float64 {

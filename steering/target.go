@@ -8,12 +8,14 @@ import (
 // Target is a spot that the vehicle is trying to get to.
 type Target struct {
 	pos pixel.Vec
+	col pixel.RGBA
 }
 
 // NewTarget instantiates a new target
 func NewTarget(pos pixel.Vec) Target {
 	return Target{
 		pos: pos,
+		col: pixel.RGB(0, 0, 0),
 	}
 }
 
@@ -22,6 +24,7 @@ func (t *Target) update(pos pixel.Vec) {
 }
 
 func (t *Target) draw(imd *imdraw.IMDraw) {
+	imd.Color = t.col
 	imd.Push(t.pos)
 	imd.Circle(6, 2)
 	imd.Push(t.pos.Sub(pixel.V(6, 0)))
