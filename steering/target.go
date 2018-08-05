@@ -17,7 +17,8 @@ func NewTarget(pos pixel.Vec) Target {
 	}
 }
 
-func (t *Target) update() {
+func (t *Target) update(pos pixel.Vec) {
+	t.pos = pos
 }
 
 func (t *Target) draw(imd *imdraw.IMDraw) {

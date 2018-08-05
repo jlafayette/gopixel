@@ -46,8 +46,8 @@ func run() {
 
 		// UPDATE
 		frames++
+		t.update(win.MousePosition())
 		v.update()
-		t.update()
 
 		// DRAW
 		select {
