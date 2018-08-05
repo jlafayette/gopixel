@@ -17,11 +17,11 @@ type Rule struct {
 }
 
 // NewRule ...
-func NewRule() Rule {
+func NewRule(rule uint8) Rule {
 	return Rule{
 		on:      color.RGBA{255, 255, 255, 255},
 		off:     color.RGBA{0, 0, 0, 255},
-		rule:    translateRule(30),
+		rule:    translateRule(rule),
 		row:     make([]bool, screenWidth, screenWidth),
 		prevRow: make([]bool, screenWidth, screenWidth),
 	}
