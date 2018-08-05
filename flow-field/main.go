@@ -57,7 +57,7 @@ func run() {
 
 		f.update()
 		for i := 0; i < len(vehicles); i++ {
-			vehicles[i].update()
+			vehicles[i].update(win.Bounds())
 		}
 
 		// DRAW

@@ -21,7 +21,6 @@ type Vehicle struct {
 
 // NewVehicle instantiates a new vehicle
 func NewVehicle(pos pixel.Vec, field *Field) Vehicle {
-
 	return Vehicle{
 		pos:      pos,
 		acc:      pixel.ZV,
@@ -36,10 +35,21 @@ func NewVehicle(pos pixel.Vec, field *Field) Vehicle {
 	}
 }
 
-func (v *Vehicle) update() {
+func (v *Vehicle) update(bounds pixel.Rect) {
 	tgt := v.pos.Add(v.field.lookup(v.pos))
 	v.seek(tgt)
 	v.pos = v.pos.Add(v.vel)
+	if !bounds.Contains(v.pos) {
+		if v.pos.X < 0 {
+			v.pos = v.pos.Add(pixel.V(screenWidth, 0))
+		} else if v.pos.X > screenWidth {
+			v.pos = v.pos.Sub(pixel.V(screenWidth, 0))
+		} else if v.pos.Y < 0 {
+			v.pos = v.pos.Add(pixel.V(0, screenHeight))
+		} else if v.pos.Y > screenHeight {
+			v.pos = v.pos.Sub(pixel.V(0, screenHeight))
+		}
+	}
 	v.vel = v.vel.Add(v.acc)
 }
 
