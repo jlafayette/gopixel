@@ -30,8 +30,8 @@ func NewVehicle(pos pixel.Vec, field *Field) Vehicle {
 		colShade: pixel.RGB(0, .2, 0),
 		velCol:   pixel.RGB(1, 0, 0),
 		accCol:   pixel.RGB(0, 0, 1),
-		maxSpeed: 4,
-		maxForce: .2,
+		maxSpeed: randFloat(3, 5),
+		maxForce: randFloat(.15, .3),
 	}
 }
 
@@ -76,6 +76,6 @@ func (v *Vehicle) draw(imd *imdraw.IMDraw) {
 	imd.Line(1)
 	imd.Color = v.accCol
 	imd.Push(v.pos)
-	imd.Push(v.pos.Add(v.acc.Scaled(75)))
+	imd.Push(v.pos.Add(v.acc.Scaled(35)))
 	imd.Line(1)
 }

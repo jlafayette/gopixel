@@ -54,6 +54,11 @@ func run() {
 		if win.JustPressed(pixelgl.MouseButtonLeft) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &f))
 		}
+		if win.JustPressed(pixelgl.MouseButtonRight) {
+			for i := 0; i < 39; i++ {
+				vehicles = append(vehicles, NewVehicle(pixel.V(randFloat(1, screenWidth-1), randFloat(1, screenHeight-1)), &f))
+			}
+		}
 
 		f.update()
 		for i := 0; i < len(vehicles); i++ {
@@ -63,7 +68,7 @@ func run() {
 		// DRAW
 		select {
 		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | FPS %d", cfg.Title, frames))
+			win.SetTitle(fmt.Sprintf("%s | FPS %d | Vehicles %d", cfg.Title, frames, len(vehicles)))
 			frames = 0
 		default:
 		}
