@@ -21,34 +21,45 @@ type Field struct {
 }
 
 type cell struct {
-	force     pixel.Vec
-	drawStart pixel.Vec
-	drawEnd   pixel.Vec
+	force        pixel.Vec
+	drawStart    pixel.Vec
+	drawEnd      pixel.Vec
+	center       pixel.Vec
+	drawDistance float64
+	xCoord       int
+	yCoord       int
 }
 
 func newCell(x, y int) cell {
-	force := pixel.Unit(randFloat(0, 2*math.Pi))
-	return cell{
-		force: force,
-	}
-}
-
-func (c *cell) calculateDrawPoints(x, y int) {
 	pixelPerCellX := screenWidth / numX
 	halfX := pixelPerCellX / 2
 	pixelPerCellY := screenHeight / numY
 	halfY := pixelPerCellY / 2
-	shortestHalf := math.Min(float64(halfX), float64(halfY)) * .75
-	center := pixel.V(float64(pixelPerCellX*x+halfX), float64(pixelPerCellY*y+halfY))
-	c.drawStart = center.Sub(c.force.Scaled(shortestHalf))
-	c.drawEnd = center.Add(c.force.Scaled(shortestHalf))
+	shortestHalf := math.Min(float64(halfX), float64(halfY))
+	return cell{
+		force:        pixel.Unit(randFloat(0, 2*math.Pi)),
+		center:       pixel.V(float64(pixelPerCellX*x+halfX), float64(pixelPerCellY*y+halfY)),
+		xCoord:       x,
+		yCoord:       y,
+		drawDistance: shortestHalf * 1,
+	}
+}
+
+func (c *cell) calculateDrawPoints() {
+	c.drawStart = c.center
+	c.drawEnd = c.center.Add(c.force.Scaled(c.drawDistance))
+}
+
+func (c *cell) rotate() {
+	c.force = c.force.Rotated(.005)
+	c.calculateDrawPoints()
 }
 
 // NewField ...
 func NewField() Field {
 	f := Field{
 		cells: [numX][numY]cell{},
-		color: pixel.RGB(.5, .5, .5),
+		color: pixel.RGB(.7, .7, .7),
 	}
 	f.randomizeFlow()
 	f.averageFlow()
@@ -124,12 +135,12 @@ func (f *Field) averageFlow() {
 			}
 			averageX := sumX / 9
 			averageY := sumY / 9
-			f.cells[x][y].force = pixel.V(averageX, averageY)
+			f.cells[x][y].force = pixel.Unit(pixel.V(averageX, averageY).Angle())
 		}
 	}
 	for x := 0; x < numX; x++ {
 		for y := 0; y < numY; y++ {
-			f.cells[x][y].calculateDrawPoints(x, y)
+			f.cells[x][y].calculateDrawPoints()
 		}
 	}
 }
@@ -157,7 +168,15 @@ func (f *Field) lookup(pos pixel.Vec) pixel.Vec {
 	y := pos.Y / float64(pixelPerCellY)
 	x = pixel.Clamp(x, 0, numX-1)
 	y = pixel.Clamp(y, 0, numY-1)
-	return f.cells[int(x)][int(y)].force
+
+	// Rotate the force vector ever so slightly each time it applies
+	// force to a vehicle. This will slowly change the field over time
+	// and prevent deadlocks.
+	xi := int(x)
+	yi := int(y)
+	f.cells[xi][yi].rotate()
+
+	return f.cells[xi][yi].force
 }
 
 func randFloat(min, max float64) float64 {
