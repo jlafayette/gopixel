@@ -55,7 +55,7 @@ func run() {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
 		}
 
-		// path.update()
+		path.update()
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].update()
 		}
@@ -69,7 +69,7 @@ func run() {
 		}
 		win.Clear(background)
 		imd.Clear()
-		// path.draw(imd)
+		path.draw(imd)
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].draw(imd)
 		}
