@@ -65,6 +65,7 @@ func run() {
 			}
 		}
 		if remove {
+			// Delete without preserving order
 			vehicles[removeIndex] = vehicles[len(vehicles)-1]
 			vehicles[len(vehicles)-1] = Vehicle{}
 			vehicles = vehicles[:len(vehicles)-1]
@@ -81,7 +82,7 @@ func run() {
 		win.Clear(background)
 		imd.Clear()
 		path.draw(imd)
-		// path.drawClosest(win.MousePosition(), imd) // debug
+		path.drawClosest(win.MousePosition(), imd) // debug
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].draw(imd)
 		}

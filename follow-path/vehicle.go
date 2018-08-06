@@ -48,17 +48,19 @@ func (v *Vehicle) update() {
 }
 
 func (v *Vehicle) followPath() pixel.Vec {
-	v.futurePos = v.pos.Add(v.vel.Scaled(25))
+	// v.futurePos = v.pos.Add(v.vel.Scaled(25))
 
-	// is future pos on the path?
-	v.cp = closestPoint(v.futurePos, v.path.start, v.path.end)
-	if v.cp.To(v.futurePos).Len() < v.path.radius {
-		// if yes, do nothing
-		return v.futurePos
-	}
-	// if no, move along the path a bit
-	alongPath := pixel.Unit(v.path.start.To(v.path.end).Angle()).Scaled(100)
-	return v.cp.Add(alongPath)
+	// // is future pos on the path?
+	// v.cp = closestPoint(v.futurePos, v.path.start, v.path.end)
+	// if v.cp.To(v.futurePos).Len() < v.path.radius {
+	// 	// if yes, do nothing
+	// 	return v.futurePos
+	// }
+	// // if no, move along the path a bit
+	// alongPath := pixel.Unit(v.path.start.To(v.path.end).Angle()).Scaled(100)
+	// return v.cp.Add(alongPath)
+
+	return pixel.ZV
 }
 
 func (v *Vehicle) seek(tgt pixel.Vec) {

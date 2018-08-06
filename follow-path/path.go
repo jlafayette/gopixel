@@ -9,8 +9,7 @@ import (
 
 // Path ...
 type Path struct {
-	start       pixel.Vec
-	end         pixel.Vec
+	points      [8]pixel.Vec
 	lineColor   pixel.RGBA
 	radiusColor pixel.RGBA
 	radius      float64
@@ -19,8 +18,18 @@ type Path struct {
 // NewPath ...
 func NewPath() Path {
 	return Path{
-		start:       pixel.V(0, randFloat(100, screenHeight-100)),
-		end:         pixel.V(screenWidth, randFloat(100, screenHeight-100)),
+		points: [8]pixel.Vec{
+			pixel.V(0, randFloat(100, screenHeight-100)),
+			pixel.V(1*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(2*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(3*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(4*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(5*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(6*(screenWidth/7), randFloat(100, screenHeight-100)),
+			pixel.V(screenWidth, randFloat(100, screenHeight-100)),
+		},
+		// start:       pixel.V(0, randFloat(100, screenHeight-100)),
+		// end:         pixel.V(screenWidth, randFloat(100, screenHeight-100)),
 		lineColor:   pixel.RGB(0, 0, 0),
 		radiusColor: pixel.RGB(.5, .5, .5),
 		radius:      25,
@@ -32,28 +41,53 @@ func (p *Path) drawClosest(v pixel.Vec, imd *imdraw.IMDraw) {
 	imd.Color = pixel.RGB(0, 0, 0)
 	imd.Push(v)
 	imd.Circle(5, 0)
-	imd.Push(p.start)
+
+	closestPt := pixel.V(-1000, -1000)
+	start := p.points[0]
+	// end := p.points[1]
+	for i := 0; i < len(p.points)-1; i++ {
+		pt := closestPoint(v, p.points[i], p.points[i+1])
+		segLen := p.points[i].To(p.points[i+1]).Len()
+		if p.points[i].To(pt).Len() < segLen && p.points[i+1].To(pt).Len() < segLen {
+			if v.To(pt).Len() < v.To(closestPt).Len() {
+				closestPt = pt
+				start = p.points[i]
+				// end = p.points[i+1]
+			}
+		}
+	}
+	for i := 0; i < len(p.points); i++ {
+		if v.To(p.points[i]).Len() < v.To(closestPt).Len() {
+			closestPt = p.points[i]
+			start = p.points[i]
+		}
+	}
+	imd.Push(start)
 	imd.Push(v)
 	imd.Line(1)
 
-	pt := closestPoint(v, p.start, p.end)
 	imd.Color = pixel.RGB(1, 0, 0)
-	imd.Push(pt)
+	imd.Push(closestPt)
 	imd.Circle(5, 0)
 	imd.Color = pixel.RGB(.5, 0, 0)
-	imd.Push(pt)
+	imd.Push(closestPt)
 	imd.Circle(5, 1)
 }
 
 func (p *Path) draw(imd *imdraw.IMDraw) {
 	imd.Color = p.radiusColor
-	imd.Push(p.start)
-	imd.Push(p.end)
-	imd.Line(p.radius * 2)
+	for i := 0; i < len(p.points)-1; i++ {
+		imd.Push(p.points[i])
+		imd.Push(p.points[i+1])
+		imd.Line(p.radius * 2)
+	}
+
 	imd.Color = p.lineColor
-	imd.Push(p.start)
-	imd.Push(p.end)
-	imd.Line(2)
+	for i := 0; i < len(p.points)-1; i++ {
+		imd.Push(p.points[i])
+		imd.Push(p.points[i+1])
+		imd.Line(2)
+	}
 }
 
 func angleBetween(a, b pixel.Vec) float64 {
