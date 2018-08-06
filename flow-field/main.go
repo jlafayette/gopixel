@@ -45,6 +45,7 @@ func run() {
 	f := NewField()
 	var vehicles []Vehicle
 	vehicles = append(vehicles, NewVehicle(pixel.V(screenWidth/2, screenHeight/2), &f))
+	debug := true
 
 	// main loop
 	for !win.Closed() {
@@ -53,10 +54,16 @@ func run() {
 		frames++
 		if win.JustPressed(pixelgl.MouseButtonLeft) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &f))
+			if len(vehicles) > 82 {
+				debug = false
+			}
 		}
 		if win.JustPressed(pixelgl.MouseButtonRight) {
 			for i := 0; i < 39; i++ {
 				vehicles = append(vehicles, NewVehicle(pixel.V(randFloat(1, screenWidth-1), randFloat(1, screenHeight-1)), &f))
+			}
+			if len(vehicles) > 82 {
+				debug = false
 			}
 		}
 
@@ -68,7 +75,7 @@ func run() {
 		// DRAW
 		select {
 		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | FPS %d | Vehicles %d", cfg.Title, frames, len(vehicles)))
+			win.SetTitle(fmt.Sprintf("%s | FPS %d | Vehicles %d | debug: %v", cfg.Title, frames, len(vehicles), debug))
 			frames = 0
 		default:
 		}
@@ -76,7 +83,7 @@ func run() {
 		imd.Clear()
 		f.draw(imd)
 		for i := 0; i < len(vehicles); i++ {
-			vehicles[i].draw(imd)
+			vehicles[i].draw(imd, debug)
 		}
 		imd.Draw(win)
 

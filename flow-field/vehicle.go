@@ -63,19 +63,21 @@ func (v *Vehicle) seek(tgt pixel.Vec) {
 	v.acc = steering
 }
 
-func (v *Vehicle) draw(imd *imdraw.IMDraw) {
+func (v *Vehicle) draw(imd *imdraw.IMDraw, debug bool) {
 	imd.Color = v.col
 	imd.Push(v.pos)
 	imd.Circle(5, 0)
-	imd.Color = v.colShade
-	imd.Push(v.pos)
-	imd.Circle(5, 1)
-	imd.Color = v.velCol
-	imd.Push(v.pos)
-	imd.Push(v.pos.Add(v.vel.Scaled(5)))
-	imd.Line(1)
-	imd.Color = v.accCol
-	imd.Push(v.pos)
-	imd.Push(v.pos.Add(v.acc.Scaled(35)))
-	imd.Line(1)
+	if debug {
+		imd.Color = v.colShade
+		imd.Push(v.pos)
+		imd.Circle(5, 1)
+		imd.Color = v.velCol
+		imd.Push(v.pos)
+		imd.Push(v.pos.Add(v.vel.Scaled(5)))
+		imd.Line(1)
+		imd.Color = v.accCol
+		imd.Push(v.pos)
+		imd.Push(v.pos.Add(v.acc.Scaled(35)))
+		imd.Line(1)
+	}
 }
