@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	screenWidth  = 800
+	screenWidth  = 1600
 	screenHeight = 800
 )
 
@@ -48,17 +48,26 @@ func run() {
 	vehicles = append(vehicles, NewVehicle(pixel.V(screenWidth/2, screenHeight/2), &path))
 	var removeIndex int
 	var remove bool
+	var spawnDelay int
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
+		spawnDelay++
+		if spawnDelay > 10 {
+			vehicles = append(vehicles, NewVehicle(pixel.V(1, randFloat(10, screenHeight-10)), &path))
+			spawnDelay = 0
+		}
 		if win.JustPressed(pixelgl.MouseButtonLeft) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
 		}
 		if win.Pressed(pixelgl.MouseButtonRight) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
+		}
+		if win.JustPressed(pixelgl.KeyLeftControl) {
+			path.points = randomPoints()
 		}
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].update()

@@ -18,21 +18,23 @@ type Path struct {
 // NewPath ...
 func NewPath() Path {
 	return Path{
-		points: [8]pixel.Vec{
-			pixel.V(0, randFloat(100, screenHeight-100)),
-			pixel.V(1*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(2*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(3*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(4*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(5*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(6*(screenWidth/7), randFloat(100, screenHeight-100)),
-			pixel.V(screenWidth, randFloat(100, screenHeight-100)),
-		},
-		// start:       pixel.V(0, randFloat(100, screenHeight-100)),
-		// end:         pixel.V(screenWidth, randFloat(100, screenHeight-100)),
-		lineColor:   pixel.RGB(0, 0, 0),
-		radiusColor: pixel.RGB(.5, .5, .5),
+		points:      randomPoints(),
+		lineColor:   pixel.RGB(.5, .5, .5),
+		radiusColor: pixel.RGB(.8, .8, .8),
 		radius:      25,
+	}
+}
+
+func randomPoints() [8]pixel.Vec {
+	return [8]pixel.Vec{
+		pixel.V(0, randFloat(100, screenHeight-100)),
+		pixel.V(1*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(2*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(3*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(4*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(5*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(6*(screenWidth/7), randFloat(100, screenHeight-100)),
+		pixel.V(screenWidth, randFloat(100, screenHeight-100)),
 	}
 }
 
