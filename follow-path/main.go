@@ -54,7 +54,10 @@ func run() {
 
 		// UPDATE
 		frames++
-		if win.Pressed(pixelgl.MouseButtonLeft) {
+		if win.JustPressed(pixelgl.MouseButtonLeft) {
+			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
+		}
+		if win.Pressed(pixelgl.MouseButtonRight) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
 		}
 		for i := 0; i < len(vehicles); i++ {
@@ -82,7 +85,7 @@ func run() {
 		win.Clear(background)
 		imd.Clear()
 		path.draw(imd)
-		path.drawClosest(win.MousePosition(), imd) // debug
+		// path.drawClosest(win.MousePosition(), imd) // debug
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].draw(imd)
 		}
