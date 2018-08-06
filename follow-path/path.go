@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 )
@@ -25,7 +27,22 @@ func NewPath() Path {
 	}
 }
 
-func (p *Path) update() {
+func (p *Path) drawClosest(v pixel.Vec, imd *imdraw.IMDraw) {
+	// debug function, practice getting closest point to path.
+	imd.Color = pixel.RGB(0, 0, 0)
+	imd.Push(v)
+	imd.Circle(5, 0)
+	imd.Push(p.start)
+	imd.Push(v)
+	imd.Line(1)
+
+	pt := closestPoint(v, p.start, p.end)
+	imd.Color = pixel.RGB(1, 0, 0)
+	imd.Push(pt)
+	imd.Circle(5, 0)
+	imd.Color = pixel.RGB(.5, 0, 0)
+	imd.Push(pt)
+	imd.Circle(5, 1)
 }
 
 func (p *Path) draw(imd *imdraw.IMDraw) {
@@ -37,4 +54,18 @@ func (p *Path) draw(imd *imdraw.IMDraw) {
 	imd.Push(p.start)
 	imd.Push(p.end)
 	imd.Line(2)
+}
+
+func angleBetween(a, b pixel.Vec) float64 {
+	d := a.Dot(b)
+	return math.Acos(d / (a.Len() * b.Len()))
+}
+
+func closestPoint(p, a, b pixel.Vec) pixel.Vec {
+	ap := a.To(p)
+	ab := a.To(b)
+	ab = pixel.Unit(ab.Angle())
+	ab = ab.Scaled(ap.Dot(ab))
+	normalPoint := a.Add(ab)
+	return normalPoint
 }
