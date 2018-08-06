@@ -29,8 +29,9 @@ func run() {
 	// win.SetSmooth(true)
 
 	var (
-		frames = 0
-		second = time.Tick(time.Second)
+		frames     = 0
+		prevFrames = 0
+		second     = time.Tick(time.Second)
 	)
 
 	seed := time.Now().UnixNano()
@@ -45,31 +46,42 @@ func run() {
 	path := NewPath()
 	var vehicles []Vehicle
 	vehicles = append(vehicles, NewVehicle(pixel.V(screenWidth/2, screenHeight/2), &path))
+	var removeIndex int
+	var remove bool
 
 	// main loop
 	for !win.Closed() {
 
 		// UPDATE
 		frames++
-		if win.JustPressed(pixelgl.MouseButtonLeft) {
+		if win.Pressed(pixelgl.MouseButtonLeft) {
 			vehicles = append(vehicles, NewVehicle(win.MousePosition(), &path))
 		}
-
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].update()
+			if !win.Bounds().Contains(vehicles[i].pos) {
+				removeIndex = i
+				remove = true
+			}
 		}
-
+		if remove {
+			vehicles[removeIndex] = vehicles[len(vehicles)-1]
+			vehicles[len(vehicles)-1] = Vehicle{}
+			vehicles = vehicles[:len(vehicles)-1]
+			remove = false
+		}
 		// DRAW
+		win.SetTitle(fmt.Sprintf("%s | FPS %d | Vehicles %d", cfg.Title, prevFrames, len(vehicles)))
 		select {
 		case <-second:
-			win.SetTitle(fmt.Sprintf("%s | FPS %d | Vehicles %d", cfg.Title, frames, len(vehicles)))
+			prevFrames = frames
 			frames = 0
 		default:
 		}
 		win.Clear(background)
 		imd.Clear()
 		path.draw(imd)
-		path.drawClosest(win.MousePosition(), imd) // debug
+		// path.drawClosest(win.MousePosition(), imd) // debug
 		for i := 0; i < len(vehicles); i++ {
 			vehicles[i].draw(imd)
 		}

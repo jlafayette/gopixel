@@ -9,16 +9,19 @@ import (
 
 // Vehicle ...
 type Vehicle struct {
-	pos      pixel.Vec
-	acc      pixel.Vec
-	vel      pixel.Vec
-	path     *Path
-	col      pixel.RGBA
-	colShade pixel.RGBA
-	velCol   pixel.RGBA
-	accCol   pixel.RGBA
-	maxSpeed float64
-	maxForce float64
+	pos       pixel.Vec
+	acc       pixel.Vec
+	vel       pixel.Vec
+	futurePos pixel.Vec
+	cp        pixel.Vec
+	desiredV  pixel.Vec
+	path      *Path
+	col       pixel.RGBA
+	colShade  pixel.RGBA
+	velCol    pixel.RGBA
+	accCol    pixel.RGBA
+	maxSpeed  float64
+	maxForce  float64
 }
 
 // NewVehicle ...
@@ -38,14 +41,24 @@ func NewVehicle(pos pixel.Vec, path *Path) Vehicle {
 }
 
 func (v *Vehicle) update() {
-	tgt := v.followPath()
-	v.seek(tgt)
+	v.desiredV = v.followPath()
+	v.seek(v.desiredV)
 	v.pos = v.pos.Add(v.vel)
 	v.vel = v.vel.Add(v.acc)
 }
 
 func (v *Vehicle) followPath() pixel.Vec {
-	return pixel.ZV
+	v.futurePos = v.pos.Add(v.vel.Scaled(25))
+
+	// is future pos on the path?
+	v.cp = closestPoint(v.futurePos, v.path.start, v.path.end)
+	if v.cp.To(v.futurePos).Len() < v.path.radius {
+		// if yes, do nothing
+		return v.futurePos
+	}
+	// if no, move along the path a bit
+	alongPath := pixel.Unit(v.path.start.To(v.path.end).Angle()).Scaled(100)
+	return v.cp.Add(alongPath)
 }
 
 func (v *Vehicle) seek(tgt pixel.Vec) {
@@ -62,6 +75,8 @@ func (v *Vehicle) draw(imd *imdraw.IMDraw) {
 	imd.Color = v.col
 	imd.Push(v.pos)
 	imd.Circle(5, 0)
+	imd.Push(v.futurePos)
+	imd.Circle(3, 0)
 	imd.Color = v.colShade
 	imd.Push(v.pos)
 	imd.Circle(5, 1)
@@ -69,10 +84,14 @@ func (v *Vehicle) draw(imd *imdraw.IMDraw) {
 	imd.Push(v.pos)
 	imd.Push(v.pos.Add(v.vel.Scaled(5)))
 	imd.Line(1)
+	imd.Push(v.cp)
+	imd.Circle(3, 0)
 	imd.Color = v.accCol
 	imd.Push(v.pos)
 	imd.Push(v.pos.Add(v.acc.Scaled(35)))
 	imd.Line(1)
+	imd.Push(v.desiredV)
+	imd.Circle(3, 0)
 }
 
 func randFloat(min, max float64) float64 {

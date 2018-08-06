@@ -23,7 +23,7 @@ func NewPath() Path {
 		end:         pixel.V(screenWidth, randFloat(100, screenHeight-100)),
 		lineColor:   pixel.RGB(0, 0, 0),
 		radiusColor: pixel.RGB(.5, .5, .5),
-		radius:      50,
+		radius:      25,
 	}
 }
 
@@ -49,7 +49,7 @@ func (p *Path) draw(imd *imdraw.IMDraw) {
 	imd.Color = p.radiusColor
 	imd.Push(p.start)
 	imd.Push(p.end)
-	imd.Line(p.radius)
+	imd.Line(p.radius * 2)
 	imd.Color = p.lineColor
 	imd.Push(p.start)
 	imd.Push(p.end)
