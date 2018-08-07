@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
@@ -44,7 +45,10 @@ func run() {
 
 	var boids []Boid
 	for i := 0; i < 40; i++ {
-		boids = append(boids, NewBoid(pixel.V(randFloat(10, screenWidth-10), randFloat(10, screenHeight-10))))
+		pos := pixel.V(randFloat(10, screenWidth-10), randFloat(10, screenHeight-10))
+		boid := NewBoid(pos)
+		boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(boid.maxSpeed)
+		boids = append(boids, boid)
 	}
 
 	// main loop
@@ -53,10 +57,12 @@ func run() {
 		// UPDATE
 		frames++
 		if win.JustPressed(pixelgl.MouseButtonLeft) {
-			boids = append(boids, NewBoid(win.MousePosition()))
+			boid := NewBoid(win.MousePosition())
+			boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(boid.maxSpeed)
+			boids = append(boids, boid)
 		}
 		for i := 0; i < len(boids); i++ {
-			boids[i].update()
+			boids[i].update(boids)
 		}
 
 		// DRAW

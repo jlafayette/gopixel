@@ -22,7 +22,7 @@ type Boid struct {
 
 // NewBoid ...
 func NewBoid(pos pixel.Vec) Boid {
-	maxSpeed := randFloat(3, 5)
+	maxSpeed := randFloat(5, 8)
 	maxForce := randFloat(.2, .3)
 
 	return Boid{
@@ -38,9 +38,25 @@ func NewBoid(pos pixel.Vec) Boid {
 	}
 }
 
-func (b *Boid) update() {
+func (b *Boid) update(allboids []Boid) {
+	desired := b.align(allboids)
+	steering := desired.Sub(b.vel)
+	if steering.Len() > b.maxForce {
+		steering = pixel.Unit(steering.Angle()).Scaled(b.maxForce)
+	}
+	b.acc = steering
 	b.pos = b.pos.Add(b.vel)
 	b.vel = b.vel.Add(b.acc)
+}
+
+func (b *Boid) align(neighbors []Boid) pixel.Vec {
+	sum := pixel.ZV
+	for i := 0; i < len(neighbors); i++ {
+		if neighbors[i].pos != b.pos {
+			sum = sum.Add(neighbors[i].vel)
+		}
+	}
+	return sum.Scaled(1.0 / float64(len(neighbors)-1))
 }
 
 func (b *Boid) draw(imd *imdraw.IMDraw) {
