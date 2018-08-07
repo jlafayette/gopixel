@@ -62,7 +62,7 @@ func run() {
 			boids = append(boids, boid)
 		}
 		for i := 0; i < len(boids); i++ {
-			boids[i].update(boids)
+			boids[i].update(win.Bounds(), boids)
 		}
 
 		// DRAW
