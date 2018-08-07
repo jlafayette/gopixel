@@ -61,6 +61,11 @@ func run() {
 			boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(boid.maxSpeed)
 			boids = append(boids, boid)
 		}
+		if win.Pressed(pixelgl.MouseButtonRight) {
+			boid := NewBoid(win.MousePosition())
+			boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(.5)
+			boids = append(boids, boid)
+		}
 		for i := 0; i < len(boids); i++ {
 			boids[i].update(win.Bounds(), boids)
 		}
