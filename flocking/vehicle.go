@@ -52,7 +52,8 @@ func (b *Boid) update(bounds pixel.Rect, allboids []Boid) {
 	// weight
 	align := b.align(neighbors).Scaled(1)
 	separate := b.separate(neighbors).Scaled(1)
-	b.acc = align.Add(separate)
+	cohesion := b.cohere(neighbors).Scaled(.05)
+	b.acc = align.Add(separate).Add(cohesion)
 
 	// limit acc
 	if b.acc.Len() > b.maxForce {
@@ -104,7 +105,7 @@ func (b *Boid) align(neighbors []Boid) pixel.Vec {
 }
 
 func (b *Boid) separate(neighbors []Boid) pixel.Vec {
-	desiredSeparation := 50.0
+	desiredSeparation := 75.0
 
 	// This blend determines how bouncy and chaotic the simulation
 	// feels. Putting this all way to zero makes everything stop
@@ -130,6 +131,25 @@ func (b *Boid) separate(neighbors []Boid) pixel.Vec {
 		return desired.Sub(b.vel)
 	}
 	return b.vel
+}
+
+func (b *Boid) cohere(neighbors []Boid) pixel.Vec {
+	avgX := b.pos.X
+	avgY := b.pos.Y
+	for i := 0; i < len(neighbors); i++ {
+		avgX = avgX + neighbors[i].pos.X
+		avgY = avgY + neighbors[i].pos.Y
+	}
+	avgX = avgX / float64(1+len(neighbors))
+	avgY = avgY / float64(1+len(neighbors))
+	desired := b.pos.To(pixel.V(avgX, avgY))
+
+	// Usually the force should equal desired minus velocity, but in
+	// this case it would suck all the life out of the simulation and
+	// tend to become static.
+
+	// return desired.Sub(b.vel)
+	return desired
 }
 
 func (b *Boid) draw(imd *imdraw.IMDraw) {
