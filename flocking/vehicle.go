@@ -43,16 +43,16 @@ func NewBoid(pos pixel.Vec) Boid {
 func (b *Boid) update(bounds pixel.Rect, allboids []Boid) {
 	var neighbors []Boid
 	for i := 0; i < len(allboids); i++ {
-		distance := b.pos.To(allboids[i].pos).Len()
+		distance := distance(b.pos, allboids[i].pos)
 		if distance > 0 && distance < b.neighborDistance {
 			neighbors = append(neighbors, allboids[i])
 		}
 	}
 
 	// weight
-	align := b.align(neighbors).Scaled(1)
+	align := b.align(neighbors).Scaled(0)
 	separate := b.separate(neighbors).Scaled(1)
-	cohesion := b.cohere(neighbors).Scaled(.05)
+	cohesion := b.cohere(neighbors).Scaled(0)
 	b.acc = align.Add(separate).Add(cohesion)
 
 	// limit acc
@@ -113,12 +113,12 @@ func (b *Boid) separate(neighbors []Boid) pixel.Vec {
 	// used, but combined with other behaviors, any value less than
 	// 1 will suck all the movement out of the group.
 
-	// desired := pixel.Lerp(pixel.ZV, b.vel, 1)
-	desired := b.vel
+	desired := pixel.Lerp(pixel.ZV, b.vel, 0)
+	// desired := b.vel
 
 	count := 0
 	for i := 0; i < len(neighbors); i++ {
-		sepImpulse := neighbors[i].pos.To(b.pos)
+		sepImpulse := wrapTo(neighbors[i].pos, b.pos)
 		if sepImpulse.Len() < desiredSeparation {
 			a := sepImpulse.Angle()
 			m := sepImpulse.Len()
