@@ -156,17 +156,17 @@ func (b *Boid) draw(imd *imdraw.IMDraw) {
 	imd.Color = b.col
 	imd.Push(b.pos)
 	imd.Circle(5, 0)
-	imd.Color = b.colShade
-	imd.Push(b.pos)
-	imd.Circle(5, 1)
-	imd.Color = b.velCol
-	imd.Push(b.pos)
-	imd.Push(b.pos.Add(b.vel.Scaled(5)))
-	imd.Line(1)
-	imd.Color = b.accCol
-	imd.Push(b.pos)
-	imd.Push(b.pos.Add(b.acc.Scaled(35)))
-	imd.Line(1)
+	// imd.Color = b.colShade
+	// imd.Push(b.pos)
+	// imd.Circle(5, 1)
+	// imd.Color = b.velCol
+	// imd.Push(b.pos)
+	// imd.Push(b.pos.Add(b.vel.Scaled(5)))
+	// imd.Line(1)
+	// imd.Color = b.accCol
+	// imd.Push(b.pos)
+	// imd.Push(b.pos.Add(b.acc.Scaled(35)))
+	// imd.Line(1)
 }
 
 func randFloat(min, max float64) float64 {
