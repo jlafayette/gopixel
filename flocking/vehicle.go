@@ -23,8 +23,8 @@ type Boid struct {
 
 // NewBoid ...
 func NewBoid(pos pixel.Vec) Boid {
-	maxSpeed := randFloat(3, 5)
-	maxForce := randFloat(.2, .3)
+	maxSpeed := randFloat(3, 4)
+	maxForce := randFloat(.15, .3)
 
 	return Boid{
 		pos:              pos,
@@ -36,7 +36,7 @@ func NewBoid(pos pixel.Vec) Boid {
 		accCol:           pixel.RGB(0, 0, 1),
 		maxSpeed:         maxSpeed,
 		maxForce:         maxForce,
-		neighborDistance: 50,
+		neighborDistance: 75,
 	}
 }
 
@@ -49,13 +49,16 @@ func (b *Boid) update(bounds pixel.Rect, allboids []Boid) {
 		}
 	}
 
-	// desired := b.align(neighbors)
-	desired := b.separate(neighbors)
-	steering := desired.Sub(b.vel)
-	if steering.Len() > b.maxForce {
-		steering = pixel.Unit(steering.Angle()).Scaled(b.maxForce)
+	// weight
+	align := b.align(neighbors).Scaled(1)
+	separate := b.separate(neighbors).Scaled(1)
+	b.acc = align.Add(separate)
+
+	// limit acc
+	if b.acc.Len() > b.maxForce {
+		b.acc = pixel.Unit(b.acc.Angle()).Scaled(b.maxForce)
 	}
-	b.acc = steering
+
 	b.pos = b.pos.Add(b.vel)
 	if !bounds.Contains(b.pos) {
 		if b.pos.X < 0 {
@@ -69,6 +72,11 @@ func (b *Boid) update(bounds pixel.Rect, allboids []Boid) {
 		}
 	}
 	b.vel = b.vel.Add(b.acc)
+
+	// limit vel
+	if b.vel.Len() > b.maxSpeed {
+		b.vel = pixel.Unit(b.vel.Angle()).Scaled(b.maxSpeed)
+	}
 }
 
 func (b *Boid) align(neighbors []Boid) pixel.Vec {
@@ -89,31 +97,37 @@ func (b *Boid) align(neighbors []Boid) pixel.Vec {
 	if count > 0 {
 		avgDir = avgDir / float64(count)
 		avgSpeed = avgSpeed / float64(count)
-		return pixel.Unit(avgDir).Scaled(avgSpeed)
+		desired := pixel.Unit(avgDir).Scaled(avgSpeed)
+		return desired.Sub(b.vel)
 	}
 	return b.vel
 }
 
 func (b *Boid) separate(neighbors []Boid) pixel.Vec {
 	desiredSeparation := 50.0
-	sum := pixel.ZV
+
+	// This blend determines how bouncy and chaotic the simulation
+	// feels. Putting this all way to zero makes everything stop
+	// after separating. 0.9 seems to work well if only separate is
+	// used, but combined with other behaviors, any value less than
+	// 1 will suck all the movement out of the group.
+
+	// desired := pixel.Lerp(pixel.ZV, b.vel, 1)
+	desired := b.vel
+
 	count := 0
 	for i := 0; i < len(neighbors); i++ {
 		sepImpulse := neighbors[i].pos.To(b.pos)
 		if sepImpulse.Len() < desiredSeparation {
 			a := sepImpulse.Angle()
 			m := sepImpulse.Len()
-			strength := mapRange(desiredSeparation-m, 0, desiredSeparation, 0, b.maxSpeed)
-			sum = sum.Add(pixel.Unit(a).Scaled(strength))
+			strength := mapRange(desiredSeparation-m, 8, desiredSeparation, 0, b.maxSpeed)
+			desired = desired.Add(pixel.Unit(a).Scaled(strength))
 			count++
 		}
 	}
 	if count > 0 {
-		if sum.Len() > b.maxSpeed {
-			return pixel.Unit(sum.Angle()).Scaled(b.maxSpeed)
-		}
-		lerpAmount := mapRange(sum.Len(), 0, b.maxSpeed, 0, 1)
-		return pixel.Lerp(b.vel, sum, lerpAmount)
+		return desired.Sub(b.vel)
 	}
 	return b.vel
 }
