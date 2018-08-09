@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/faiface/pixel"
@@ -50,10 +51,11 @@ func (b *Boid) update(bounds pixel.Rect, allboids []Boid) {
 	}
 
 	// weight
-	align := b.align(neighbors).Scaled(0)
+	align := b.align(neighbors).Scaled(1)
 	separate := b.separate(neighbors).Scaled(1)
-	cohesion := b.cohere(neighbors).Scaled(0)
-	b.acc = align.Add(separate).Add(cohesion)
+	cohesion := b.cohere(neighbors).Scaled(.05)
+	bias := pixel.V(-.005, 0)
+	b.acc = align.Add(separate).Add(cohesion).Add(bias)
 
 	// limit acc
 	if b.acc.Len() > b.maxForce {
@@ -113,8 +115,8 @@ func (b *Boid) separate(neighbors []Boid) pixel.Vec {
 	// used, but combined with other behaviors, any value less than
 	// 1 will suck all the movement out of the group.
 
-	desired := pixel.Lerp(pixel.ZV, b.vel, 0)
-	// desired := b.vel
+	// desired := pixel.Lerp(pixel.ZV, b.vel, .85)
+	desired := b.vel
 
 	count := 0
 	for i := 0; i < len(neighbors); i++ {
@@ -134,15 +136,38 @@ func (b *Boid) separate(neighbors []Boid) pixel.Vec {
 }
 
 func (b *Boid) cohere(neighbors []Boid) pixel.Vec {
+
+	if len(neighbors) == 0 {
+		return b.pos
+	}
+	screen := pixel.R(0, 0, screenWidth, screenHeight)
+	halfX := screen.Size().X * .5
+	halfY := screen.Size().Y * .5
 	avgX := b.pos.X
 	avgY := b.pos.Y
 	for i := 0; i < len(neighbors); i++ {
-		avgX = avgX + neighbors[i].pos.X
-		avgY = avgY + neighbors[i].pos.Y
+		if math.Abs(b.pos.X-neighbors[i].pos.X) > halfX {
+			if b.pos.X > neighbors[i].pos.X {
+				avgX = avgX + (neighbors[i].pos.X + screenWidth)
+			} else {
+				avgX = avgX + (neighbors[i].pos.X - screenWidth)
+			}
+		} else {
+			avgX = avgX + neighbors[i].pos.X
+		}
+		if math.Abs(b.pos.Y-neighbors[i].pos.Y) > halfY {
+			if b.pos.Y > neighbors[i].pos.Y {
+				avgY = avgY + (neighbors[i].pos.Y + screenHeight)
+			} else {
+				avgY = avgY + (neighbors[i].pos.Y - screenHeight)
+			}
+		} else {
+			avgY = avgY + neighbors[i].pos.Y
+		}
 	}
 	avgX = avgX / float64(1+len(neighbors))
 	avgY = avgY / float64(1+len(neighbors))
-	desired := b.pos.To(pixel.V(avgX, avgY))
+	desired := wrapTo(b.pos, pixel.V(avgX, avgY))
 
 	// Usually the force should equal desired minus velocity, but in
 	// this case it would suck all the life out of the simulation and

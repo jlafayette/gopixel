@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	screenWidth  = 800
-	screenHeight = 800
+	screenWidth  = 1600
+	screenHeight = 950
 )
 
 func run() {
@@ -43,14 +43,11 @@ func run() {
 	background := pixel.RGB(.9, .9, .9)
 	win.Clear(background)
 
-	green := pixel.RGB(0, .8, 0)
-	red := pixel.RGB(.8, 0, 0)
-
 	var boids []Boid
 	for i := 0; i < 40; i++ {
 		pos := pixel.V(randFloat(10, screenWidth-10), randFloat(10, screenHeight-10))
 		boid := NewBoid(pos)
-		boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(boid.maxSpeed)
+		boid.vel = pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(boid.maxSpeed)
 		boids = append(boids, boid)
 	}
 
@@ -61,25 +58,16 @@ func run() {
 		frames++
 		if win.JustPressed(pixelgl.MouseButtonLeft) {
 			boid := NewBoid(win.MousePosition())
-			boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(boid.maxSpeed)
+			boid.vel = pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(boid.maxSpeed)
 			boids = append(boids, boid)
 		}
 		if win.Pressed(pixelgl.MouseButtonRight) {
 			boid := NewBoid(win.MousePosition())
-			boid.vel = pixel.Unit(randFloat(-math.Pi, math.Pi)).Scaled(.5)
+			boid.vel = pixel.Unit(randFloat(0, 2*math.Pi)).Scaled(.5)
 			boids = append(boids, boid)
 		}
 		for i := 0; i < len(boids); i++ {
 			boids[i].update(win.Bounds(), boids)
-		}
-
-		// test distance
-		for i := 1; i < len(boids); i++ {
-			if distance(boids[0].pos, boids[i].pos) < 200 {
-				boids[i].col = red
-			} else {
-				boids[i].col = green
-			}
 		}
 
 		// DRAW
